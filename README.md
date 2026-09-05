@@ -4,7 +4,7 @@
 
 ## 1. 다운로드하고 압축 풀기
 
-**[Lecture Notes v0.1.3 다운로드](https://github.com/vividhyeok/Lecture-Notes/raw/refs/heads/main/downloads/Lecture-Notes-v0.1.3.zip)**
+**[Lecture Notes v0.1.4 다운로드](https://github.com/vividhyeok/Lecture-Notes/raw/refs/heads/main/downloads/Lecture-Notes-v0.1.4.zip)**
 
 ZIP을 내려받아 `문서\Lecture-Notes`처럼 계속 사용할 폴더에 **모두 압축 풀기** 하세요. 압축 파일 안에서 바로 실행하지 마세요. 사용 후에도 이 폴더는 보관해야 합니다.
 
@@ -59,7 +59,7 @@ YouTube에 연결한 노트는 `youtube` 과목으로 모입니다. 이 확장 �
 | 증상 | 확인할 내용 |
 | --- | --- |
 | 자료함 연결 안 됨 | START.cmd 실행. 처음 설치 후에는 확장 관리에서 새로고침하고 영상 페이지도 새로고침. |
-| 영상 페이지인데 연결 안 됨 | v0.1.3 이상으로 업데이트. 확장 관리의 사이트 액세스에서 현재 JNUclass/YouTube 사이트 허용. 원하는 영상 탭을 활성화한 뒤 연결. |
+| 영상 페이지인데 연결 안 됨 | v0.1.4 이상으로 업데이트. 확장 관리의 사이트 액세스에서 현재 JNUclass/YouTube 사이트 허용. 원하는 영상 탭을 활성화한 뒤 연결. |
 | 새 파일이 안 보임 | 실제 다운로드 위치와 자동 입력 폴더가 같은지 확인. 다운로드 완료 후 내 강의의 처리 상태 확인. |
 | 설정한 위치에 노트가 없음 | 설정 저장 버튼 아래의 실제 경로 확인. 지정 폴더 아래 `강의노트\과목명`에 저장됨. |
 | 전사 또는 노트 생성 실패 | API 키와 API 사용 한도 확인 후 처리 상태에서 재시도. |

@@ -91,7 +91,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond(403, {'error': '다른 사이트에서 설정 파일을 읽을 수 없습니다.'})
             public = {'/': 'panel.html', '/panel.html': 'panel.html', '/panel.js': 'panel.js', '/style.css': 'style.css', '/markdown.js': 'markdown.js', '/config.local.js': 'config.local.js'}
             public.update({('/' + name): name for name in ['appearance.js', 'print.html', 'print.js', 'print.css']})
-            public.update({('/' + name): name for name in ['navigation.js', 'context.js']})
+            public.update({('/' + name): name for name in ['navigation.js', 'context.js', 'context-router.js']})
             if path not in public:
                 return self.respond(404, {'error': '없음'})
             return self.send_file(app.root / 'extension' / public[path])

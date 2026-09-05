@@ -55,7 +55,7 @@ async function updateLectureContext() {
   if (!extension || contextPolling) return;
   contextPolling = true;
   try {
-    const fresh = await chrome.runtime.sendMessage({type:'GET_LECTURE_CONTEXT'});
+    const fresh = await LectureContextRouter.current(chrome);
     if (fresh?.error) { context = null; $('playingContext').textContent = fresh.error; return; }
     context = fresh;
     if (!fresh) { lastContextKey = ''; $('playingContext').textContent = 'JNUclass 또는 YouTube 영상 탭에서 강의를 연결하세요.'; return; }
@@ -633,7 +633,7 @@ $("bindTab").onclick = action(async () => {
   $('bindStatus').textContent = '현재 탭의 주소로 연결 중…';
   try {
   if (editing) throw Error('편집 내용을 먼저 저장하거나 취소하세요.');
-  const fresh = await chrome.runtime.sendMessage({type:'GET_LECTURE_CONTEXT'});
+  const fresh = await LectureContextRouter.current(chrome);
   if (fresh?.error) throw Error(fresh.error);
   if (!fresh?.canBind) throw Error('연결할 JNUclass 또는 YouTube 페이지를 활성화하고 다시 누르세요.');
   await api('bind-lecture', {id:current.id, context:fresh});

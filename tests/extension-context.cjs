@@ -13,11 +13,11 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),asse
   const lecture=await browser.newPage();
   await lecture.route('**/*',route=>route.fulfill({contentType:'text/html; charset=utf-8',body:'<title>AI 강의</title><nav id="breadcrumbs"><a href="/courses/43319">AI 윤리학</a><a href="/courses/43319/modules">모듈</a></nav><h1>AI와 인간 관계의 윤리학_01_01</h1>'}));
   await lecture.goto('https://canvas.jejunu.ac.kr/courses/43319/modules/items/2864676');await lecture.bringToFront();
-  const value=await panel.evaluate(()=>chrome.runtime.sendMessage({type:'GET_LECTURE_CONTEXT'}));
+  const value=await panel.evaluate(()=>LectureContextRouter.current(chrome));
   console.log('Real extension context:',JSON.stringify(value));
   assert.equal(value?.canBind,true);assert.equal(value.course,'AI 윤리학');assert.equal(value.pageKey,'https://canvas.jejunu.ac.kr/courses/43319/modules/items/2864676');
   await lecture.goto('https://www.youtube.com/watch?v=abcdefghijk');await lecture.bringToFront();
-  const youtube=await panel.evaluate(()=>chrome.runtime.sendMessage({type:'GET_LECTURE_CONTEXT'}));
+  const youtube=await panel.evaluate(()=>LectureContextRouter.current(chrome));
   assert.equal(youtube?.course,'youtube');assert.equal(youtube?.canBind,true);
   console.log('PASS: actual extension service worker and tabs API, Canvas/YouTube without video');
  }finally{await browser.close();}

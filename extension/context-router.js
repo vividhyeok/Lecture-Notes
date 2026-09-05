@@ -1,5 +1,13 @@
 /* Linking reads the top-level page only. Player frames are irrelevant. */
 (() => {
+  async function current(chrome) {
+    const [tab] = await chrome.tabs.query({active:true,currentWindow:true});
+    if (!tab?.url) return {error:'현재 탭 주소를 읽지 못했습니다. 확장 관리에서 Lecture Notes를 새로고침하세요.'};
+    const url = new URL(tab.url);
+    const hosts = ['jnuclass.jejunu.ac.kr','canvas.jejunu.ac.kr','canvas.jnu.ac.kr','common.jejunu.ac.kr','youtube.com','www.youtube.com','m.youtube.com','youtu.be'];
+    if (url.protocol !== 'https:' || !hosts.includes(url.hostname)) return {error:'현재 탭: '+(tab.title || url.hostname)+' · 연결할 강의 탭을 선택하세요.'};
+    return collect(chrome,tab);
+  }
   async function collect(chrome, tab) {
     let fallback;
     try {
@@ -24,5 +32,5 @@
     if (!top?.canBind) return fallback || null;
     return {...top, tabId: tab.id};
   }
-  globalThis.LectureContextRouter = {collect};
+  globalThis.LectureContextRouter = {collect,current};
 })();

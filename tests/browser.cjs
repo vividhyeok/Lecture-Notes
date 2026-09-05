@@ -142,7 +142,8 @@ const fs = require("node:fs"),
       window.testLecture = {canBind:true,course:'운영체제',title:'LMS 영상 01',pageKey:'https://jnuclass.jejunu.ac.kr/courses/1/lecture/1',mediaKey:'https://common.jejunu.ac.kr/01.mp4',tabId:123};
       window.chrome ||= {};
       chrome.runtime = {id:'test-extension',sendMessage:async()=>window.testLecture};
-      chrome.tabs = {create:async args=>{window.openedVideo=args.url;},onActivated:{addListener:()=>{}}};
+      chrome.tabs = {query:async()=>[{id:window.testLecture.tabId,url:window.testLecture.pageKey,title:window.testLecture.title}],create:async args=>{window.openedVideo=args.url;},onActivated:{addListener:()=>{}}};
+      chrome.scripting = {executeScript:async args=>args.files?[]:[{result:window.testLecture}]};
       chrome.storage = {local:{get:async()=>({}),set:async()=>{}}};
     });
     await linked.goto(base);

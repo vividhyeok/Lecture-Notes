@@ -4,7 +4,7 @@ import hashlib
 import zipfile
 
 root = Path(__file__).resolve().parent
-target = root / 'dist' / 'Lecture-Notes-v0.1.3.zip'
+target = root / 'dist' / 'Lecture-Notes-v0.1.4.zip'
 target.parent.mkdir(exist_ok=True)
 files = [root / name for name in ['README.md', 'DEVELOPMENT.md', 'START.cmd', 'start.ps1', 'SETUP.cmd', 'setup.ps1']]
 for directory, extensions in [('backend', {'.py'}), ('extension', {'.js', '.html', '.css', '.json'}), ('samples', {'.md', '.txt'}), ('docs', {'.md'})]:
