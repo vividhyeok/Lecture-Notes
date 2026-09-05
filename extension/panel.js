@@ -632,7 +632,7 @@ $("bindTab").onclick = action(async () => {
   if (editing) throw Error('편집 내용을 먼저 저장하거나 취소하세요.');
   const fresh = await chrome.runtime.sendMessage({type:'GET_LECTURE_CONTEXT'});
   if (fresh?.error) throw Error(fresh.error);
-  if (!fresh?.hasMedia) throw Error('연결할 JNUclass 또는 YouTube 영상 탭을 열고 다시 누르세요.');
+  if (!fresh?.canBind) throw Error('연결할 JNUclass 또는 YouTube 페이지를 활성화하고 다시 누르세요.');
   await api('bind-lecture', {id:current.id, context:fresh});
   if (fresh.course && current.course !== fresh.course && (fresh.course === 'youtube' || !current.course || current.course === '미분류')) {
     await api('rename', {id:current.id, title:current.title, course:fresh.course});

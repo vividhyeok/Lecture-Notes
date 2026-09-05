@@ -37,10 +37,7 @@ class VaultSync:
             for row in self.list_lectures():
                 path = Path(row['folder']) / 'bindings.json'
                 previous = load(path, [])
-                if re.fullmatch(r'https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}', binding['pageKey']):
-                    previous_without_video = [b for b in previous if b.get('pageKey') != binding['pageKey']]
-                else:
-                    previous_without_video = previous
+                previous_without_video = [b for b in previous if b.get('pageKey') != binding['pageKey']]
                 kept = [b for b in previous_without_video if not (b == binding or ((binding['mediaKey'] and b.get('mediaKey') == binding['mediaKey'] or b.get('pageKey') == binding['pageKey']) and b.get('title') == binding['title'] and b.get('course') == binding['course']))]
                 if row['id'] == ident:
                     kept.append(binding)

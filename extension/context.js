@@ -18,29 +18,24 @@
     } catch { return ''; }
   }
   function read(media) {
-    const all = [...document.querySelectorAll('video,audio')];
-    media ||= all.find(m => !m.paused && !m.ended) || all.sort((a,b) => b.clientWidth*b.clientHeight-a.clientWidth*a.clientHeight)[0];
     const crumbNodes = [...document.querySelectorAll('#breadcrumbs a,[aria-label*="breadcrumb" i] a,.breadcrumbs a,.breadcrumb a')];
     const crumbs = crumbNodes.map(n => text(n.textContent)).filter(Boolean);
     const coursePath = location.pathname.match(/^\/courses\/\d+/)?.[0];
     const courseNode = coursePath && crumbNodes.find(n => {
       try { return new URL(n.href, location.href).pathname.replace(/\/$/, '') === coursePath; } catch { return false; }
     });
-    let container = media?.parentElement, label = text(media?.getAttribute('title'));
-    for (let i=0; container && i<5 && !label; i++, container=container.parentElement) label=text(container.getAttribute('aria-label') || container.getAttribute('title'));
-    const source = media?.currentSrc || media?.src || media?.querySelector('source')?.src;
     const youtube = ['www.youtube.com', 'm.youtube.com', 'youtube.com', 'youtu.be'].includes(location.hostname);
     const youtubeTitle = youtube ? text(document.querySelector('ytd-watch-metadata h1, h1.ytd-watch-metadata')?.textContent) || text(document.title).replace(/ - YouTube$/, '') : '';
     const pageTitle = text(document.querySelector('main h1,[role="main"] h1,h1,main h2')?.textContent);
-    const lmsLecture = Boolean(coursePath && /^\/courses\/\d+\/(?:modules\/items|external_tools)\/\d+/.test(location.pathname) && pageTitle && document.querySelector('iframe'));
+    const lmsLecture = Boolean(coursePath && /^\/courses\/\d+\/(?:modules\/items|external_tools)\/\d+/.test(location.pathname));
     const youtubeLecture = youtube && /^https:\/\/www\.youtube\.com\/watch\?v=/.test(stable(location.href)) && Boolean(youtubeTitle);
     return {
       course: youtube ? 'youtube' : text(courseNode?.textContent) || (crumbs.length > 1 ? crumbs[1] : ''),
       module: crumbs.length > 2 ? crumbs.at(-2) : '',
-      title: youtubeTitle || (lmsLecture ? pageTitle : '') || label || pageTitle || crumbs.at(-1) || text(document.title),
-      pageKey: stable(location.href), mediaKey: youtube ? '' : source ? stable(source) : '',
+      title: youtubeTitle || pageTitle || crumbs.at(-1) || text(document.title),
+      pageKey: stable(location.href), mediaKey: '',
       hasMedia: Boolean(media), area: media ? media.clientWidth * media.clientHeight : 0,
-      canBind: Boolean(media || lmsLecture || youtubeLecture), lecturePage: lmsLecture || youtubeLecture,
+      canBind: Boolean(stable(location.href) && (youtubeTitle || pageTitle || document.title)), lecturePage: lmsLecture || youtubeLecture,
       currentTime: Number(media?.currentTime) || 0,
       duration: Number.isFinite(media?.duration) ? media.duration : 0,
       paused: media ? media.paused : true,

@@ -139,7 +139,7 @@ const fs = require("node:fs"),
     linked.on('pageerror', e=>errors.push(e.message));
     await linked.addInitScript(() => {
       sessionStorage.setItem('setupShown','1');
-      window.testLecture = {hasMedia:true,course:'운영체제',title:'LMS 영상 01',pageKey:'https://jnuclass.jejunu.ac.kr/courses/1/lecture/1',mediaKey:'https://common.jejunu.ac.kr/01.mp4',tabId:123};
+      window.testLecture = {canBind:true,course:'운영체제',title:'LMS 영상 01',pageKey:'https://jnuclass.jejunu.ac.kr/courses/1/lecture/1',mediaKey:'https://common.jejunu.ac.kr/01.mp4',tabId:123};
       window.chrome ||= {};
       chrome.runtime = {id:'test-extension',sendMessage:async()=>window.testLecture};
       chrome.tabs = {create:async args=>{window.openedVideo=args.url;},onActivated:{addListener:()=>{}}};
@@ -161,14 +161,14 @@ const fs = require("node:fs"),
     await linked.waitForTimeout(3300);
     assert.ok((await linked.locator('#readerTitle').textContent()).includes('다음 강의'),'manual navigation must not snap back');
     assert.equal(await linked.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-    await linked.evaluate(()=>{window.testLecture={hasMedia:true,course:'youtube',title:'YouTube lesson',pageKey:'https://www.youtube.com/watch?v=abcdefghijk',mediaKey:'',tabId:124};});
+    await linked.evaluate(()=>{window.testLecture={canBind:true,course:'youtube',title:'YouTube lesson',pageKey:'https://www.youtube.com/watch?v=abcdefghijk',mediaKey:'',tabId:124};});
     await linked.click('#noteTools > summary');
     await linked.click('#bindTab');
     await linked.waitForFunction(()=>document.querySelector('#readerCourse').textContent==='youtube');
     await linked.click('#openVideo');
     assert.equal(await linked.evaluate(()=>window.openedVideo), 'https://www.youtube.com/watch?v=abcdefghijk');
     await linked.reload();
-    await linked.evaluate(()=>{window.testLecture={hasMedia:true,course:'youtube',title:'Renamed YouTube lesson',pageKey:'https://www.youtube.com/watch?v=abcdefghijk',mediaKey:'',tabId:124};});
+    await linked.evaluate(()=>{window.testLecture={canBind:true,course:'youtube',title:'Renamed YouTube lesson',pageKey:'https://www.youtube.com/watch?v=abcdefghijk',mediaKey:'',tabId:124};});
     await linked.waitForFunction(()=>!document.querySelector('#readerView').hidden && document.querySelector('#readerCourse').textContent==='youtube');
     await linked.close();
     assert.deepEqual(errors, []);
