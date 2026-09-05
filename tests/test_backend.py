@@ -71,8 +71,10 @@ class LibraryTests(unittest.TestCase):
     def test_youtube_video_id_survives_sync_and_reassignment(self):
         first = self.app.import_file(self.source('first-note.md', '# First'))
         second = self.app.import_file(self.source('second-note.md', '# Second'))
-        data = {'course': 'youtube', 'title': 'First', 'pageKey': 'https://www.youtube.com/watch?v=abcdefghijk&token=secret&list=playlist'}
+        data = {'course': '잘못된 과목', 'title': 'First', 'pageKey': 'https://www.youtube.com/watch?v=abcdefghijk&token=secret&list=playlist'}
         self.app.bind_lecture(first, data)
+        self.assertEqual(self.app.lecture(first)['course'], 'youtube')
+        self.assertEqual(self.app.lecture(first)['bindings'][0]['course'], 'youtube')
         self.assertEqual(self.app.lecture(first)['bindings'][0]['pageKey'], 'https://www.youtube.com/watch?v=abcdefghijk')
         self.app.bind_lecture(second, dict(data, title='Changed title'))
         self.assertEqual(self.app.lecture(first)['bindings'], [])

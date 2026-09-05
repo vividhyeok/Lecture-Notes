@@ -30,7 +30,7 @@
     try { top = await read(0); }
     catch { return fallback || {error: '현재 페이지 주소를 읽지 못했습니다. 확장 관리에서 Lecture Notes를 새로고침하세요.'}; }
     if (!top?.canBind) return fallback || null;
-    return {...top, tabId: tab.id};
+    return {...top, course: fallback?.course === 'youtube' ? 'youtube' : top.course, tabId: tab.id};
   }
   globalThis.LectureContextRouter = {collect,current};
 })();

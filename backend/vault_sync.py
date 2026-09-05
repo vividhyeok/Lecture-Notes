@@ -25,6 +25,9 @@ class VaultSync:
             result[key] = (url.scheme + '://' + url.netloc + url.path + ('?' + query if query else ''))[:2000]
         if not result['title'] or not result['pageKey']:
             raise ValueError('현재 열린 강의의 제목과 주소를 확인할 수 없습니다.')
+        host = urlsplit(result['pageKey']).hostname or ''
+        if host == 'youtu.be' or host == 'youtube.com' or host.endswith('.youtube.com'):
+            result['course'] = 'youtube'
         return result
 
     def bind_lecture(self, ident, data):
@@ -33,6 +36,8 @@ class VaultSync:
             lecture = self.lecture(ident)
             if lecture['sync_status']:
                 raise ValueError('노트 동기화를 완료한 뒤 연결하세요.')
+            if binding['course'] == 'youtube' and lecture['course'] != 'youtube':
+                self.rename(ident, lecture['title'], 'youtube')
             # Reassigning an explicit video connection must not leave two automatic targets.
             for row in self.list_lectures():
                 path = Path(row['folder']) / 'bindings.json'
