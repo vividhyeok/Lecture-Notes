@@ -1,6 +1,7 @@
 ﻿"use strict";
 const $ = (id) => document.getElementById(id);
 const extension = Boolean(globalThis.chrome?.runtime?.id);
+if (extension) document.querySelector('.app-header strong').textContent += ' v' + (chrome.runtime.getManifest?.().version || '개발');
 const config = globalThis.LN_CONFIG || {
   base: "http://127.0.0.1:18765",
   token: "",
@@ -629,6 +630,8 @@ $("stopServer").onclick = action(async () => {
 });
 $("bindTab").onclick = action(async () => {
   if (!extension || !current) return;
+  $('bindStatus').textContent = '현재 탭의 주소로 연결 중…';
+  try {
   if (editing) throw Error('편집 내용을 먼저 저장하거나 취소하세요.');
   const fresh = await chrome.runtime.sendMessage({type:'GET_LECTURE_CONTEXT'});
   if (fresh?.error) throw Error(fresh.error);
@@ -641,6 +644,11 @@ $("bindTab").onclick = action(async () => {
   lastContextKey = LectureNavigation.identity(fresh);
   await refresh();
   toast(fresh.title + ' → ' + current.title + ' 연결됨');
+  $('bindStatus').textContent = '연결됨: ' + fresh.pageKey;
+  } catch (error) {
+    $('bindStatus').textContent = error.message;
+    throw error;
+  }
 });
 $('lectureJump').onchange = action(async e => {
   const id = e.target.value;

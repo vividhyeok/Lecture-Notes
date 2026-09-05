@@ -31,7 +31,9 @@ chrome.runtime.onMessage.addListener((m, s, reply) => {
   if (m.type === 'GET_LECTURE_CONTEXT' && s.id === chrome.runtime.id) {
     (async () => {
       const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-      if (!tab || !supported(tab.url)) return reply(null);
+      if (!tab) return reply({error:'활성 탭을 찾지 못했습니다. 연결할 페이지를 클릭한 뒤 다시 누르세요.'});
+      if (!tab.url) return reply({error:'탭 주소 권한이 적용되지 않았습니다. Chrome 확장 관리에서 Lecture Notes를 새로고침하세요.'});
+      if (!supported(tab.url)) return reply({error:'현재 선택된 탭이 JNUclass 또는 YouTube가 아닙니다. 연결할 강의 탭을 선택하세요.'});
       reply(await LectureContextRouter.collect(chrome, tab));
     })().catch(()=>reply({error:'현재 탭 정보를 읽지 못했습니다. 영상 페이지와 확장을 새로고침한 뒤 다시 연결하세요.'}));
     return true;

@@ -20,6 +20,8 @@ function mock(top, children = {}) {
   const child = {hasMedia:true,title:'player',course:'',mediaKey:'https://player.test/media',area:900,paused:false};
   assert.equal((await LectureContextRouter.collect(mock(top,{1:child,2:new Error('ad')}),{id:9})).title,top.title);
   assert.equal(await LectureContextRouter.collect(mock({...top,canBind:false}),{id:10}),null);
-  assert.ok((await LectureContextRouter.collect(mock(new Error('permission')),{id:11})).error.includes('사이트'));
+  assert.ok((await LectureContextRouter.collect(mock(new Error('permission')),{id:11})).error.includes('주소'));
+  const fallback=await LectureContextRouter.collect(mock(new Error('permission')),{id:12,url:'https://canvas.jejunu.ac.kr/courses/1/modules/items/2?token=secret',title:'강의 2'});
+  assert.equal(fallback.canBind,true);assert.equal(fallback.pageKey,'https://canvas.jejunu.ac.kr/courses/1/modules/items/2');
   console.log('PASS: inaccessible iframe, YouTube ad frame, page fallback, permissions, non-video page');
 })().catch(error=>{console.error(error);process.exitCode=1;});
