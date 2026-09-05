@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lecture Notes</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <strong>Lecture Notes</strong
+        ><span class="sub">강의를 듣고, 기록을 남기다</span>
+      </div>
+      <div class="header-actions"><button id="themeToggle" class="quiet" aria-label="화면 테마 변경">자동 테마</button><button id="settingsButton" class="quiet">설정</button></div>
+    </header>
+    <div id="connection" class="connection" role="status">
+      로컬 자료함 연결 중…
+    </div>
+    <section id="offline" class="notice" hidden>
+      <h2>자료함을 먼저 켜 주세요</h2>
+      <p>
+        프로젝트 폴더의 <b>START.cmd</b>를 실행하면 연결됩니다. 처음 실행한 경우
+        확장 프로그램을 새로고침하세요.
+      </p>
+      <button id="reconnect">다시 연결</button>
+    </section>
+    <nav class="tabs" aria-label="보기">
+      <button data-view="library" aria-selected="true">내 강의</button
+      ><button data-view="reader">노트 읽기</button
+      ><button data-view="exam">시험 준비</button>
+    </nav>
+    <main>
+      <section id="libraryView">
+        <div class="section-title">
+          <h1>내 강의</h1>
+          <button data-folder="vault" class="quiet">Obsidian 폴더</button>
+        </div>
+        <div class="search-row">
+          <input
+            id="search"
+            type="search"
+            placeholder="과목 또는 강의 찾기"
+            aria-label="강의 찾기"
+          /><button data-folder="inbox" class="quiet">입력 폴더</button>
+        </div>
+        <div id="lectureList" class="lecture-list"></div>
+<p class="muted">입력 폴더에 저장한 강의는 자동으로 추가됩니다.</p>
+<details id="manualImport" class="secondary-panel"><summary>수동으로 파일 추가</summary>
+        <div
+          id="dropZone"
+          class="drop-zone"
+          tabindex="0"
+          role="button"
+          aria-label="강의 파일 추가"
+        >
+          <strong>MP3 또는 전사본을 놓으세요</strong
+          ><span>MP4 · M4A · TXT · MD · SRT · VTT · JSON</span
+          ><button id="chooseFiles">파일 선택</button
+          ><input
+            id="fileInput"
+            type="file"
+            multiple
+            accept=".mp3,.mp4,.m4a,.wav,.webm,.mpeg,.mpga,.ogg,.flac,.txt,.md,.srt,.vtt,.json"
+            hidden
+          />
+        </div>
+        <div class="fields">
+          <label
+            >추가할 과목<input
+              id="importCourse"
+              placeholder="예: 운영체제"
+              list="courseNames" /></label
+          ><label
+            >강의명 <span class="muted">선택</span
+            ><input id="importTitle" placeholder="비워두면 파일명 사용"
+          /></label>
+        </div>
+        <datalist id="courseNames"></datalist>
+        <p id="uploadStatus" class="muted" aria-live="polite"></p>
+</details>
+        <details class="jobs">
+          <summary>처리 상태 <span id="jobCount"></span></summary>
+          <div id="jobList"></div>
+        </details>
+      </section>
+      <section id="readerView" hidden>
+        <div id="readerEmpty" class="empty">
+          <h2>강의를 선택하세요</h2>
+          <p>
+            내 강의에서 노트를 열거나 기존 Markdown을 추가하면 여기에
+            표시됩니다.
+          </p>
+        </div>
+        <div id="readerContent" hidden>
+          <div class="reader-top">
+            <div class="lecture-navigation" aria-label="같은 과목 강의 이동">
+              <button id="previousLecture" class="quiet" title="같은 과목 이전 강의">← 이전</button>
+              <select id="lectureJump" aria-label="같은 과목 강의 선택"></select>
+              <button id="nextLecture" class="quiet" title="같은 과목 다음 강의">다음 →</button>
+            </div>
+            <span id="readerCourse" class="eyebrow"></span>
+            <h1 id="readerTitle"></h1>
+            <p id="playingContext" class="muted"></p>
+          </div>
+          <div class="toolbar">
+            <button id="showNotes" aria-pressed="true">강의노트</button
+            ><button id="showTranscript" aria-pressed="false">전사본</button
+            ><button id="openVideo" class="quiet" hidden>강의 영상 열기</button>
+          </div>
+<details id="noteTools" class="secondary-panel"><summary>노트 관리 · 강의 연결</summary><div class="reader-tools"><button id="editNote" class="quiet">편집</button><button id="exportNote" class="quiet">MD 저장</button>
+            <button id="reorganizeNote" class="quiet" title="기존 전사본으로 학습 구조를 다시 작성합니다. AI 비용 발생, 이전 노트 백업.">AI 다시 정리</button>
+            <button id="bindTab" class="quiet">강의 연결</button
+            ><button id="openLectureFolder" class="quiet">원본 폴더</button
+            ><button id="renameLecture" class="quiet">이름 정리</button
+            ><button id="attachExisting" class="quiet">
+              기존 노트·전사 연결</button
+            ><input
+              id="attachInput"
+              type="file"
+              accept=".md,.txt,.srt,.vtt,.json"
+              hidden
+            />
+          </div>
+</details><details id="readingOptions" class="secondary-panel"><summary>글자 크기 · 인쇄</summary><div class="reading-controls" aria-label="읽기 설정">
+            <div class="font-controls" role="group" aria-label="노트 글자 크기">
+              <button id="fontDecrease" class="quiet" aria-label="글자 작게">가−</button>
+              <button id="fontReset" class="quiet" title="기본 크기로 되돌리기">100%</button>
+              <button id="fontIncrease" class="quiet" aria-label="글자 크게">가+</button>
+            </div>
+            <button id="printNote" class="quiet">A4 인쇄 / PDF</button>
+          </div>
+</details><details id="renameBox" hidden>
+            <summary>과목·강의명</summary>
+            <label>과목<input id="renameCourse" /></label
+            ><label>강의명<input id="renameTitle" /></label
+            ><button id="saveNames">이름 저장</button>
+            <p class="muted">
+              분류 변경 시 새 경로에 저장하며 기존 노트는 보존합니다.
+            </p>
+          </details>
+          <input
+            id="noteSearch"
+            type="search"
+            placeholder="이 노트에서 찾기 (Ctrl+F)"
+            aria-label="노트 내 검색"
+          />
+          <p id="searchCount" class="muted"></p>
+          <div id="editorBox" hidden>
+            <textarea
+              id="editor"
+              spellcheck="false"
+              aria-label="Markdown 편집"
+            ></textarea>
+            <div class="toolbar">
+              <button id="saveNote">저장</button
+              ><button id="cancelEdit" class="quiet">취소</button>
+            </div>
+            <p class="muted">
+              Obsidian의 같은 파일에 저장됩니다. 이전 버전은 원본 폴더에
+              보관합니다.
+            </p>
+          </div>
+          <article id="noteBody" class="markdown"></article>
+          <details class="secondary-panel"><summary>파일 위치</summary><p id="notePath" class="file-path"></p></details>
+        </div>
+      </section>
+      <section id="examView" hidden>
+        <h1>시험 준비</h1>
+        <p class="muted">
+          이미 만든 전사본과 노트로 자료를 다시 구성합니다. 음성을 재전사하지
+          않습니다.
+        </p>
+<details class="secondary-panel"><summary>파일로 시험 자료 추가</summary>        <div id="examDrop" class="drop-zone" tabindex="0" role="button">
+          <strong>전사본·강의노트 파일 놓기</strong
+          ><span>여러 MD · TXT · SRT · VTT · JSON</span
+          ><button id="chooseExamFiles">자료 선택</button
+          ><input
+            id="examInput"
+            type="file"
+            multiple
+            accept=".md,.txt,.srt,.vtt,.json"
+            hidden
+          />
+        </div>
+        <p class="muted">
+          또는
+          <button data-folder="exam-inbox" class="text-button">
+            시험 자료함 폴더</button
+          >에 파일을 넣어 두세요. 자동 처리가 켜져 있으면 자료가 바뀔 때 새
+          결과를 만듭니다.
+        </p>
+</details>        <label>자료 제목<input id="examTitle" value="중간고사 대비" /></label>
+        <div id="examSelect" class="exam-select"></div>
+        <button id="makeExam">선택한 강의로 시험 자료 만들기</button>
+        <p id="examStatus" class="muted" aria-live="polite"></p>
+        <div class="section-title">
+          <h2>완성된 자료</h2>
+          <button data-folder="exams" class="quiet">결과 폴더</button>
+        </div>
+        <div id="examResults"></div>
+      </section>
+      <section id="settingsView" hidden>
+        <h1>처음 한 번 설정</h1>
+        <p class="muted">
+          OpenAI API 사용 요금이 발생합니다. 전사 시 음성, 노트 작성 시 텍스트가
+          OpenAI로 전송됩니다. 키는 이 PC에 암호화해 저장합니다.
+        </p>
+        <form id="settingsForm">
+          <label
+            >OpenAI API 키<input
+              id="apiKey"
+              type="password"
+              autocomplete="off"
+              placeholder="새 키 입력 / 기존 키 유지하려면 비워두기"
+          /></label>
+          <p id="keyState" class="muted"></p>
+          <label
+            >Obsidian 보관함 경로<input
+              id="vaultFolder"
+              placeholder="보관함 폴더의 전체 경로"
+          /></label>
+          <p class="muted">
+            보관함 안의 강의노트 / 과목명 / 강의명.md 에 저장됩니다. Obsidian이
+            없어도 이 폴더로 사용할 수 있습니다.
+          </p>
+          <label>자동으로 가져올 다운로드 폴더<input id="watchFolder" /></label>
+          <p class="muted">
+            Video DownloadHelper의 저장 위치를 이 폴더로 맞추세요. 과목명 하위
+            폴더 또는 [과목명] 강의명.mp3 형식도 인식합니다. 이 폴더의 지원
+            파일은 자동 처리 대상입니다.
+          </p>
+          <label class="check"
+            ><input id="autoProcess" type="checkbox" />새 파일 자동 전사·노트
+            작성</label
+          >
+          <label class="check"
+            ><input id="timedMode" type="checkbox" />정밀 시간 정보 사용
+            (Whisper, 속도 우선이면 끄기)</label
+          >
+          <label class="check" id="downloadImportLabel"
+            ><input id="downloadImport" type="checkbox" />DownloadHelper
+            다운로드 완료도 바로 감지</label
+          >
+          <p id="downloadStatus" class="muted"></p>
+          <details>
+            <summary>AI 모델</summary>
+            <label
+              >노트·시험 자료 모델<input id="textModel" value="gpt-4.1-mini"
+            /></label>
+            <p class="muted">
+              기본 전사: gpt-4o-mini-transcribe. 긴 음성은 최대 3구간 동시 처리.
+              이미 저장된 전사는 다시 호출하지 않습니다.
+            </p>
+          </details>
+          <button type="submit">설정 저장</button>
+          <p id="settingsStatus" class="muted" role="status" aria-live="polite"></p>
+        </form>
+        <div class="setup-actions">
+          <button data-folder="extension" class="quiet">확장 폴더 열기</button
+          ><button data-folder="vault" class="quiet">Obsidian 폴더 열기</button>
+        </div>
+        <p class="muted">
+          Chrome에서 chrome://extensions → 개발자 모드 → 압축해제된 확장
+          프로그램 로드 → extension 폴더 선택.
+        </p>
+        <details>
+          <summary>처리 서버 종료</summary>
+          <p class="muted">
+            서버가 꺼져도 노트 파일은 유지됩니다. 다음에는 START.cmd로 다시
+            실행하세요.
+          </p>
+          <button id="stopServer" class="quiet">서버 종료</button>
+        </details>
+      </section>
+    </main>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="config.local.js"></script>
+    <script src="markdown.js"></script>
+    <script src="appearance.js"></script>
+    <script src="navigation.js"></script>
+    <script src="panel.js"></script>
+  </body>
+</html>

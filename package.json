@@ -1,0 +1,12 @@
+{
+  "name": "lecture-notes",
+  "version": "0.1.1",
+  "private": true,
+  "scripts": {
+    "check": "node tests/check.cjs",
+    "test:browser": "node tests/browser.cjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}

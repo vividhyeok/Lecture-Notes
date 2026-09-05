@@ -1,0 +1,26 @@
+@page { size: A4 portrait; margin: 16mm 15mm 17mm; }
+:root { color-scheme: light; --print-size: 10.5pt; background: #edf0f3; color: #111; }
+.print-page { min-width: 0; }
+.print-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 20px; padding: 15px; background: white; border-bottom: 1px solid #ddd; }
+.print-actions p { font-size: 12px; color: #555; }
+.print-actions label { margin: 0; }
+.print-page main { width: 210mm; max-width: 100%; margin: 24px auto; padding: 16mm 15mm; background: white; box-shadow: 0 2px 20px #0001; }
+.print-page .markdown { font-size: var(--print-size); line-height: 1.6; color: #111; padding: 0; }
+.print-page .markdown h1 { font-size: 1.65em; }
+.print-page .markdown h2 { font-size: 1.3em; }
+.print-page .markdown h3 { font-size: 1.12em; }
+.print-page .markdown pre, .print-page .markdown table { font-size: .9em; }
+.print-page .markdown pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.print-page .markdown table { display: table; table-layout: fixed; }
+.print-page .markdown td, .print-page .markdown th { padding: 5px; overflow-wrap: anywhere; }
+@media print {
+  :root, body { background: white !important; color: black !important; }
+  .print-actions { display: none !important; }
+  .print-page main { width: auto; max-width: none; margin: 0; padding: 0; box-shadow: none; }
+  .markdown h1, .markdown h2, .markdown h3, .markdown h4 { break-after: avoid; }
+  .markdown p, .markdown li { orphans: 3; widows: 3; }
+  .markdown tr { break-inside: avoid; }
+  .markdown thead { display: table-header-group; }
+  .markdown pre { overflow: visible; }
+  .markdown mark { background: transparent; border: 0; }
+}

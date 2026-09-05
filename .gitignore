@@ -1,0 +1,8 @@
+.local/
+library/
+Obsidian/
+extension/config.local.js
+__pycache__/
+*.pyc
+node_modules/
+dist/

@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "Lecture Notes · 강의 노트",
+  "version": "0.1.1",
+  "minimum_chrome_version": "116",
+  "description": "다운로드한 강의를 OpenAI로 전사하고 Markdown 노트와 시험 자료를 폴더에 보관합니다.",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "downloads",
+    "scripting",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:18765/*",
+    "https://jnuclass.jejunu.ac.kr/*",
+    "https://canvas.jejunu.ac.kr/*",
+    "https://canvas.jnu.ac.kr/*",
+    "https://common.jejunu.ac.kr/*",
+    "https://www.youtube.com/*",
+    "https://m.youtube.com/*",
+    "https://youtube.com/*",
+    "https://youtu.be/*"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "action": {
+    "default_title": "강의 노트 열기"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://jnuclass.jejunu.ac.kr/*",
+        "https://canvas.jejunu.ac.kr/*",
+        "https://canvas.jnu.ac.kr/*",
+        "https://common.jejunu.ac.kr/*",
+        "https://www.youtube.com/*",
+        "https://m.youtube.com/*",
+        "https://youtube.com/*",
+        "https://youtu.be/*"
+      ],
+      "js": [
+        "context.js",
+        "content.js"
+      ],
+      "all_frames": true,
+      "match_origin_as_fallback": true,
+      "run_at": "document_idle"
+    }
+  ]
+}

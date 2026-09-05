@@ -1,0 +1,488 @@
+﻿:root {
+  font:
+    14px/1.65 -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Malgun Gothic",
+    sans-serif;
+  color: #263443;
+  background: #fff;
+  --muted: #727d88;
+  --line: #e5e9ed;
+  --accent: #304f70;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 300px;
+}
+button,
+input,
+textarea {
+  font: inherit;
+}
+button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 12px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+button:hover {
+  filter: brightness(0.94);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+button.quiet {
+  background: #fff;
+  color: #445466;
+}
+button.text-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+}
+input:not([type="checkbox"]),
+textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #d8dfe6;
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+}
+input:focus,
+textarea:focus {
+  outline: 2px solid #aec4dc;
+  outline-offset: 1px;
+}
+input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+label {
+  display: block;
+  margin: 13px 0 6px;
+  font-size: 12px;
+  color: #596673;
+}
+h1 {
+  font-size: 23px;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.5px;
+  margin: 10px 0 12px;
+}
+h2 {
+  font-size: 18px;
+  margin: 16px 0 9px;
+}
+p {
+  margin: 8px 0;
+}
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 17px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.app-header strong {
+  font-size: 17px;
+  letter-spacing: -0.4px;
+}
+.sub {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.connection {
+  padding: 7px 20px;
+  background: #f5f8fa;
+  color: var(--muted);
+  font-size: 11px;
+}
+.connection.connected {
+  color: #3c7164;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: #fffffff5;
+  z-index: 2;
+}
+.tabs button {
+  flex: 1;
+  border: 0;
+  background: none;
+  color: #72808c;
+  font-size: 13px;
+}
+.tabs button[aria-selected="true"] {
+  background: #edf2f7;
+  color: #263d58;
+}
+main {
+  padding: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.drop-zone {
+  border: 1px dashed #c9d2dd;
+  border-radius: 9px;
+  padding: 23px 12px;
+  text-align: center;
+  background: #fafbfd;
+  margin: 16px 0;
+}
+.drop-zone strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 550;
+}
+.drop-zone span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 4px 0 13px;
+}
+.drop-zone.drag {
+  background: #edf3fa;
+  border-color: #6282a5;
+}
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.fields label {
+  margin: 0;
+}
+.search-row {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0 10px;
+}
+.search-row button {
+  white-space: nowrap;
+}
+.lecture-list h2 {
+  font-size: 12px;
+  color: #7a8692;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin: 24px 0 6px;
+}
+.lecture-item {
+  width: 100%;
+  text-align: left;
+  padding: 13px 2px;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+  color: #243448;
+}
+.lecture-item strong {
+  display: block;
+  font-weight: 550;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.lecture-item span {
+  font-size: 11px;
+  color: var(--muted);
+}
+details {
+  border-top: 1px solid var(--line);
+  padding: 15px 0;
+  margin-top: 15px;
+}
+summary {
+  cursor: pointer;
+  color: #617184;
+  font-size: 12px;
+}
+.job {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.job p {
+  font-size: 11px;
+  color: var(--muted);
+}
+.job.error p {
+  color: #a54d43;
+}
+.toolbar,
+.reader-tools {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 13px 0;
+}
+.toolbar button {
+  font-size: 12px;
+  background: white;
+  color: #5a6b7e;
+}
+.toolbar button[aria-pressed="true"] {
+  background: #edf2f7;
+  color: #294462;
+}
+.reader-tools button {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+.eyebrow {
+  color: #8993a0;
+  font-size: 12px;
+}
+.reader-top h1 {
+  overflow-wrap: anywhere;
+}
+.file-path {
+  font-size: 10px;
+  color: #9ca4ac;
+  overflow-wrap: anywhere;
+  margin-top: 35px;
+}
+.markdown {
+  font-size: var(--note-size, 14px);
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+  color: #35404e;
+  padding: 4px 0 30px;
+}
+.markdown h1 {
+  font-size: 1.65em;
+  margin: 20px 0 15px;
+}
+.markdown h2 {
+  font-size: 1.3em;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 5px;
+  margin-top: 28px;
+}
+.markdown h3 {
+  font-size: 1.1em;
+  margin-top: 22px;
+}
+.markdown ul,
+.markdown ol {
+  padding-left: 22px;
+  margin: 7px 0;
+}
+.markdown li {
+  margin: 4px 0;
+}
+.markdown li > ul {
+  margin: 3px 0;
+}
+.markdown p {
+  margin: 10px 0;
+}
+.markdown blockquote {
+  border-left: 3px solid var(--line);
+  padding-left: 13px;
+  color: #76808b;
+  margin: 15px 0;
+}
+.markdown pre {
+  background: #f5f6f8;
+  border-radius: 6px;
+  padding: 14px;
+  overflow: auto;
+  font:
+    12px/1.6 Consolas,
+    monospace;
+  white-space: pre;
+}
+.markdown code {
+  font-family: Consolas, monospace;
+  background: #f1f3f5;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+.markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  display: block;
+  overflow: auto;
+  font-size: 12px;
+}
+.markdown td,
+.markdown th {
+  border: 1px solid var(--line);
+  padding: 7px 10px;
+}
+.markdown th {
+  background: #f7f8fa;
+}
+.markdown mark {
+  background: #eceff3;
+  color: inherit;
+  border-bottom: 2px solid #7188a3;
+}
+.markdown .wiki {
+  color: #597695;
+}
+.empty {
+  padding: 40px 10px;
+  text-align: center;
+  color: var(--muted);
+}
+.notice {
+  margin: 15px 20px;
+  padding: 15px;
+  background: #faf4e9;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+}
+.exam-select label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 7px 0;
+}
+.exam-result {
+  margin: 12px 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 12px;
+}
+.exam-result button {
+  font-size: 12px;
+}
+textarea#editor {
+  min-height: 50vh;
+  resize: vertical;
+  font:
+    12px/1.75 Consolas,
+    "Malgun Gothic",
+    monospace;
+}
+.setup-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 25px;
+}
+#toast {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  max-width: 600px;
+  margin: auto;
+  padding: 10px 15px;
+  border-radius: 7px;
+  background: #263b51;
+  color: white;
+  font-size: 12px;
+  box-shadow: 0 3px 12px #0002;
+  display: none;
+  z-index: 10;
+}
+[hidden] {
+  display: none !important;
+}
+@media (min-width: 760px) {
+  main {
+    padding: 28px 40px;
+  }
+  .fields {
+    max-width: 580px;
+  }
+  .drop-zone {
+    padding: 30px;
+  }
+  .app-header {
+    padding: 18px 40px;
+  }
+  .tabs {
+    justify-content: center;
+  }
+  .tabs button {
+    flex: 0 1 200px;
+  }
+  .markdown {
+    font-size: 15px;
+    line-height: 1.9;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  button {
+    transition: background 0.15s;
+  }
+}
+
+/* Compact reading controls and per-PC appearance. */
+[hidden] { display: none !important; }
+.header-actions, .reading-controls, .font-controls { display: flex; align-items: center; gap: 6px; }
+.header-actions button { font-size: 11px; padding: 6px 8px; }
+.reading-controls { justify-content: space-between; flex-wrap: wrap; padding: 10px 0; border-block: 1px solid var(--line); margin: 12px 0; }
+.reading-controls button { font-size: 12px; min-height: 34px; }
+.font-controls { gap: 0; }
+.font-controls button { border-radius: 0; min-width: 40px; }
+.font-controls button:first-child { border-radius: 6px 0 0 6px; }
+.font-controls button:last-child { border-radius: 0 6px 6px 0; }
+button:focus-visible, summary:focus-visible { outline: 2px solid #6e9fce; outline-offset: 3px; }
+.markdown table, .markdown pre { font-size: .9em; }
+.file-path { white-space: pre-line; }
+:root[data-theme="dark"] { color-scheme: dark; background: #181c22; color: #dce3eb; --muted: #abb5c2; --line: #38414d; --accent: #456b92; }
+[data-theme="dark"] button.quiet, [data-theme="dark"] .toolbar button, [data-theme="dark"] .lecture-item,
+[data-theme="dark"] input:not([type="checkbox"]), [data-theme="dark"] textarea { background: #20262e; color: #dce3eb; border-color: var(--line); }
+[data-theme="dark"] .tabs { background: #181c22f5; }
+[data-theme="dark"] .connection, [data-theme="dark"] .drop-zone { background: #20262e; }
+[data-theme="dark"] .connection.connected { color: #9bccba; }
+[data-theme="dark"] .tabs button, [data-theme="dark"] label, [data-theme="dark"] summary,
+[data-theme="dark"] .eyebrow, [data-theme="dark"] .lecture-list h2 { color: #b3bfce; }
+[data-theme="dark"] .tabs button[aria-selected="true"], [data-theme="dark"] .toolbar button[aria-pressed="true"], [data-theme="dark"] .drop-zone.drag { background: #2d4159; color: #e5efff; }
+[data-theme="dark"] .markdown { color: #d7dfe9; }
+[data-theme="dark"] .markdown pre, [data-theme="dark"] .markdown code, [data-theme="dark"] .markdown th { background: #262e39; }
+[data-theme="dark"] .markdown mark { background: #3b4656; }
+[data-theme="dark"] .markdown .wiki { color: #a1c3e6; }
+[data-theme="dark"] .markdown blockquote { color: #a9b7c7; }
+[data-theme="dark"] .notice { background: #393127; }
+[data-theme="dark"] .job.error p { color: #f0a79d; }
+@media (max-width: 380px) { main { padding: 14px; } .app-header { padding: 12px 14px; } .sub { font-size: 10px; } .header-actions { gap: 4px; } }
+.lecture-navigation { display: flex; gap: 6px; align-items: center; margin-bottom: 18px; }
+.lecture-navigation select { min-width: 0; flex: 1; width: 0; padding: 8px 6px; border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 12px; background: transparent; color: inherit; }
+.lecture-navigation button { flex-shrink: 0; padding: 7px; font-size: 11px; }
+.secondary-panel { border-top: 1px solid var(--line); margin: 10px 0; padding: 8px 0; }
+.secondary-panel > summary { color: var(--muted); font-size: 12px; cursor: pointer; padding: 4px 0; }
+.secondary-panel[open] > summary { margin-bottom: 12px; }
+.course-folder { margin: 14px 0; }
+.course-folder > summary { cursor: pointer; font-size: 15px; font-weight: 700; padding: 10px 0; overflow-wrap: anywhere; }
+.lecture-row { display: flex; align-items: center; gap: 6px; }
+.lecture-row .lecture-item { flex: 1; min-width: 0; }
+.lecture-row > .quiet { flex-shrink: 0; font-size: 11px; padding: 8px; }
+.lecture-item strong { overflow-wrap: anywhere; }
