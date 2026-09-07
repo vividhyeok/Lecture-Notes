@@ -208,6 +208,9 @@ class Handler(BaseHTTPRequestHandler):
         data = self.body()
         if url.path == '/api/settings':
             return self.respond(200, app.update_settings(data))
+        if url.path == '/api/transcript':
+            app.save_transcript(data['id'], data['text'], data.get('base'))
+            return self.respond(200, {'ok': True})
         if url.path == '/api/notes':
             current = app.lecture(data['id'])['notes']
             if 'base' in data and data['base'] != current:

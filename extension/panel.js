@@ -12,6 +12,8 @@ let state = null,
   readerMode = "notes",
   editing = false,
   editBase = "",
+  editKind = "notes",
+  transcriptBase = null,
   activeTab = null,
   context = null,
   lastMarkdown = "",
@@ -58,7 +60,7 @@ async function updateLectureContext() {
     const fresh = await LectureContextRouter.current(chrome);
     if (fresh?.error) { context = null; $('playingContext').textContent = fresh.error; return; }
     context = fresh;
-    if (!fresh) { lastContextKey = ''; $('playingContext').textContent = 'JNUclass 또는 YouTube 영상 탭에서 강의를 연결하세요.'; return; }
+    if (!fresh) { lastContextKey = ''; $('playingContext').textContent = ''; return; }
     activeTab = fresh.tabId;
     if ((!$('importCourse').value || $('importCourse').value === autoCourse) && fresh.course) { $('importCourse').value = fresh.course; autoCourse = fresh.course; }
     if ((!$('importTitle').value || $('importTitle').value === autoTitle) && fresh.title) { $('importTitle').value = fresh.title; autoTitle = fresh.title; }
@@ -127,6 +129,7 @@ async function refresh() {
     state = await api("state");
     $("offline").hidden = true;
     $("connection").classList.add("connected");
+    $("connection").classList.toggle("ready", Boolean(state.settings.has_key));
     $("connection").textContent = state.settings.has_key
       ? "자료함 연결됨 · 파일 자동 보관"
       : "자료함 연결됨 · 설정에서 OpenAI API 키를 입력하세요";
@@ -146,7 +149,7 @@ async function refresh() {
   } catch (e) {
     $("offline").hidden = false;
     $("connection").textContent = e.message;
-    $("connection").classList.remove("connected");
+    $("connection").classList.remove("connected", "ready");
   } finally {
     polling = false;
   }
@@ -315,6 +318,7 @@ async function openLecture(id) {
   }
   current = await api("lecture?id=" + encodeURIComponent(id));
   $('renameBox').hidden = true;
+  $('bindStatus').textContent = '';
   $('noteSearch').value = '';
   $('searchCount').textContent = '';
   readerMode = "notes";
@@ -342,6 +346,10 @@ function renderReader() {
     String(readerMode === "transcript"),
   );
   $("editNote").disabled = readerMode !== "notes";
+  for (const id of ["copyCorrection", "pasteCorrection"]) {
+    $(id).hidden = readerMode !== "transcript";
+    $(id).disabled = !transcriptText(current.transcript).trim();
+  }
   $("bindTab").hidden = !extension;
   let text =
     readerMode === "notes" ? current.notes : transcriptText(current.transcript);
@@ -515,6 +523,7 @@ drop("examDrop", "examInput", true);
 $("search").oninput = () => state && renderLibrary();
 $("noteSearch").oninput = findInNote;
 $("showNotes").onclick = () => {
+  if (editing) return toast("편집 내용을 먼저 저장하거나 취소하세요.");
   readerMode = "notes";
   lastMarkdown = "";
   renderReader();
@@ -528,8 +537,29 @@ $("showTranscript").onclick = () => {
   lastMarkdown = "";
   renderReader();
 };
+$("copyCorrection").onclick = action(async () => {
+  if (!current || !transcriptText(current.transcript).trim()) return;
+  const template = "아래 내용은 대학 강의를 STT로 전사한 원문입니다.\n\n과목: {course}\n강의: {title}\n\n이 작업의 목적은 내용을 요약하거나 문체를 개선하는 것이 아니라,\nSTT가 잘못 인식한 부분만 원래 강의의 의미에 가깝게 보정하는 것입니다.\n\n다음 원칙을 반드시 지켜 주세요.\n\n1. 원문의 내용, 순서, 발화 흐름을 최대한 그대로 유지합니다.\n2. 요약, 재구성, 설명 추가, 문체 개선을 하지 않습니다.\n3. 문맥상 STT 오류라고 판단할 근거가 충분한 부분만 수정합니다.\n4. 특히 다음 항목을 주의해서 확인합니다.\n   - 전공 전문용어\n   - 영어 용어와 약어\n   - 사람명, 기관명, 제품명, 기술명\n   - 수식, 숫자, 단위\n   - 주변 문맥과 전혀 맞지 않는 유사 발음 단어\n5. 전문용어나 고유명사의 정확한 표기가 불확실한 경우에만 필요하면 웹 검색으로 확인해도 됩니다.\n6. 검색 결과의 새로운 지식을 강의 내용에 추가하지 않습니다.\n7. 확신할 수 없는 부분은 억지로 고치지 않고 원문을 유지합니다.\n8. 문장을 더 자연스럽게 만들기 위한 단순한 윤문은 하지 않습니다.\n9. 원문에 타임스탬프가 있다면 타임스탬프를 삭제하거나 변경하지 않습니다.\n10. 제목, 설명, 수정 내역, 서론, 결론, 코드 블록 등의 부가 문구를 절대 출력하지 않습니다.\n\n최종 출력은 수정이 완료된 전사본 본문만 반환하세요.\n\n=== 전사본 시작 ===\n\n{transcript}\n\n=== 전사본 끝 ===";
+  const values = {course: current.course || "미분류", title: current.title, transcript: transcriptText(current.transcript).replace(/^# 전사본\s*\n/, "")};
+  await navigator.clipboard.writeText(template.replace(/\{(course|title|transcript)\}/g, (_, key) => values[key]));
+  toast("전사본 보정 프롬프트를 복사했습니다.");
+});
+$("pasteCorrection").onclick = () => {
+  if (!current || editing || !transcriptText(current.transcript).trim()) return;
+  editKind = "transcript";
+  transcriptBase = structuredClone(current.transcript);
+  editBase = "";
+  editing = true;
+  $("editor").value = "";
+  $("editor").setAttribute("aria-label", "보정된 전사본 붙여넣기");
+  $("editorBox").hidden = false;
+  $("noteBody").hidden = true;
+  $("editor").focus();
+};
 $("editNote").onclick = () => {
-  if (!current) return;
+  if (!current || editing) return;
+  editKind = "notes";
+  $("editor").setAttribute("aria-label", "Markdown 편집");
   editing = true;
   editBase = current.notes;
   $("editor").value = current.notes;
@@ -543,17 +573,18 @@ $("cancelEdit").onclick = () => {
   refresh();
 };
 $("saveNote").onclick = action(async () => {
-  await api("notes", {
+  const correcting = editKind === "transcript";
+  await api(correcting ? "transcript" : "notes", {
     id: current.id,
     text: $("editor").value,
-    base: editBase,
+    base: correcting ? transcriptBase : editBase,
   });
   editing = false;
   $("editorBox").hidden = true;
   $("noteBody").hidden = false;
   lastMarkdown = "";
   await refresh();
-  toast("Obsidian 노트에 저장했습니다.");
+  toast(correcting ? "전사본을 교체했습니다. 기존 강의노트는 유지됩니다." : "Obsidian 노트에 저장했습니다.");
 });
 $("exportNote").onclick = () =>
   download(

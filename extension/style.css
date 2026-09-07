@@ -486,3 +486,16 @@ button:focus-visible, summary:focus-visible { outline: 2px solid #6e9fce; outlin
 .lecture-row .lecture-item { flex: 1; min-width: 0; }
 .lecture-row > .quiet { flex-shrink: 0; font-size: 11px; padding: 8px; }
 .lecture-item strong { overflow-wrap: anywhere; }
+
+/* Keep reading controls compact without suppressing actionable status. */
+.connection.connected.ready { padding: 3px 20px; font-size: 11px; color: var(--muted); background: transparent; }
+#playingContext:empty, #bindStatus:empty, #searchCount:empty { display: none; }
+.reader-top h1 { margin: 4px 0 8px; }
+#noteTools { margin: 6px 0; padding: 4px 0; }
+#noteTools .reader-tools, #noteTools .reading-controls { flex-wrap: wrap; gap: 6px; }
+#noteTools .reading-controls { margin-top: 8px; }
+.reader-top, .lecture-navigation, #noteTools { min-width: 0; }
+.reader-top h1, #playingContext, #bindStatus { overflow-wrap: anywhere; }
+.lecture-navigation select { min-width: 0; }
+
+.lecture-navigation { margin-bottom: 8px; }

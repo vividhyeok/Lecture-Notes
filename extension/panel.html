@@ -109,7 +109,7 @@
             ><button id="showTranscript" aria-pressed="false">전사본</button
             ><button id="openVideo" class="quiet" hidden>강의 영상 열기</button>
           </div>
-<details id="noteTools" class="secondary-panel"><summary>노트 관리 · 강의 연결</summary><div class="reader-tools"><button id="editNote" class="quiet">편집</button><button id="exportNote" class="quiet">MD 저장</button>
+<details id="noteTools" class="secondary-panel"><summary>도구 · 보기</summary><div class="reader-tools"><button id="copyCorrection" class="quiet" disabled>GPT 보정용 복사</button><button id="pasteCorrection" class="quiet" disabled>보정본 붙여넣기</button><button id="editNote" class="quiet">편집</button><button id="exportNote" class="quiet">MD 저장</button>
             <button id="reorganizeNote" class="quiet" title="기존 전사본으로 학습 구조를 다시 작성합니다. AI 비용 발생, 이전 노트 백업.">AI 다시 정리</button>
             <button id="bindTab" class="quiet">강의 연결</button
             ><button id="openLectureFolder" class="quiet">원본 폴더</button
@@ -123,7 +123,7 @@
               hidden
             />
           </div>
-</details><details id="readingOptions" class="secondary-panel"><summary>글자 크기 · 인쇄</summary><div class="reading-controls" aria-label="읽기 설정">
+<div id="readingOptions"><div class="reading-controls" aria-label="읽기 설정">
             <div class="font-controls" role="group" aria-label="노트 글자 크기">
               <button id="fontDecrease" class="quiet" aria-label="글자 작게">가−</button>
               <button id="fontReset" class="quiet" title="기본 크기로 되돌리기">100%</button>
@@ -131,7 +131,7 @@
             </div>
             <button id="printNote" class="quiet">A4 인쇄 / PDF</button>
           </div>
-</details><details id="renameBox" hidden>
+</div></details><details id="renameBox" hidden>
             <summary>과목·강의명</summary>
             <label>과목<input id="renameCourse" /></label
             ><label>강의명<input id="renameTitle" /></label

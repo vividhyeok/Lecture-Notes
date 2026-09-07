@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import secrets
 import shutil
@@ -13,6 +14,7 @@ import threading
 import time
 
 from core import AUDIO, TEXT, atomic, load, digest, slug, inside, stamp, parse_transcript, normalize_segments, transcript_md, transcript_srt, protect, split_text, inferred_names
+from core import seconds
 from provider import OpenAI, ProviderError, NOTES_PROMPT, EXAM_PROMPT
 from vault_sync import VaultSync
 
@@ -195,6 +197,74 @@ class Library(VaultSync):
         atomic(folder / '전사본.md', transcript_md(transcript))
         if transcript.get('timed'):
             atomic(folder / '전사본.srt', transcript_srt(transcript))
+
+    def save_transcript(self, ident, text, base=None):
+        if not isinstance(text, str):
+            raise ValueError('전사본 본문을 입력하세요.')
+        text = text.strip().removeprefix('\ufeff')
+        # Remove only known outer wrappers; preserve the lecture body.
+        for _ in range(3):
+            text = re.sub(r'^# 전사본[^\S\n]*\n', '', text).strip()
+            text = re.sub(r'^=== 전사본 시작 ===\s*\n', '', text).strip()
+            text = re.sub(r'\n\s*=== 전사본 끝 ===$', '', text).strip()
+        if not text or text in ('# 전사본', '=== 전사본 시작 ===', '=== 전사본 끝 ==='):
+            raise ValueError('빈 전사본은 저장할 수 없습니다.')
+        with self.lock:
+            lecture = self.lecture(ident)
+            original = lecture['transcript']
+            if not original or not (original.get('text', '').strip() or original.get('segments')):
+                raise ValueError('교체할 기존 전사본이 없습니다.')
+            if lecture['sync_status'] or ident in getattr(self, 'sync_blocked', set()):
+                raise ValueError('Obsidian 동기화를 완료한 뒤 전사본을 저장하세요.')
+            if base is not None and base != original:
+                raise ValueError('다른 화면에서 전사본이 변경되었습니다. 보정본을 복사한 뒤 다시 열어 주세요.')
+            with self.db() as db:
+                if db.execute("SELECT id FROM jobs WHERE target=? AND status IN ('queued','running')", (ident,)).fetchone():
+                    raise ValueError('이 강의의 처리 작업이 완료된 뒤 저장하세요.')
+            updated = dict(original)
+            if original.get('timed') or original.get('segments'):
+                # Match the displayed whole-second starts, then retain exact original times.
+                matches = list(re.finditer(r'^\[(\d+:\d{2}(?::\d{2})?)\][ \t]+', text, re.M))
+                previous = original.get('segments', [])
+                if not previous or len(matches) != len(previous) or text[:matches[0].start()].strip():
+                    raise ValueError('타임스탬프와 구간 수를 원본 그대로 유지해 주세요.')
+                segments = []
+                for index, (match, segment) in enumerate(zip(matches, previous)):
+                    body = text[match.end():matches[index+1].start() if index+1 < len(matches) else len(text)].strip()
+                    if seconds(match[1]) != int(float(segment['start'])) or not body:
+                        raise ValueError('타임스탬프와 각 구간의 본문을 원본 구조대로 유지해 주세요.')
+                    segments.append(dict(segment, text=body))
+                updated.update(text='\n\n'.join(s['text'] for s in segments), segments=segments)
+            else:
+                updated.update(text=text, segments=[], timed=False)
+            folder = Path(lecture['folder'])
+            exported = load(folder / 'export.json', {})
+            export_path = self.valid_export(exported, 'transcript') if exported.get('transcript') else None
+            if export_path and export_path.exists():
+                if export_path.read_text(encoding='utf-8-sig') != (folder / '전사본.md').read_text(encoding='utf-8-sig'):
+                    raise ValueError('Obsidian에서 전사본이 변경되었습니다. 동기화 후 다시 열어 주세요.')
+            backup = folder / 'versions' / (str(time.time_ns()) + '-transcript')
+            backup.mkdir(parents=True)
+            paths = [folder / name for name in ('transcript.json', '전사본.md', '전사본.srt')]
+            for path in paths:
+                if path.exists():
+                    shutil.copy2(path, backup / path.name)
+            if export_path and export_path.exists():
+                shutil.copy2(export_path, backup / 'export.md')
+            try:
+                self.write_transcript(folder, updated)
+                if export_path:
+                    atomic(export_path, transcript_md(updated))
+            except OSError:
+                for path in paths:
+                    saved = backup / path.name
+                    if saved.exists():
+                        atomic(path, saved.read_text(encoding='utf-8'))
+                if export_path and (backup / 'export.md').exists():
+                    atomic(export_path, (backup / 'export.md').read_text(encoding='utf-8'))
+                raise
+            # Do not call export(): it also synchronizes notes. Only the transcript changed.
+
 
     def status(self, job, progress, status=None, error=''):
         with self.db() as db:
