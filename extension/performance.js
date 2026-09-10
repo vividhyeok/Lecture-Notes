@@ -209,7 +209,7 @@
     }
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
+  function initialize() {
     if (globalThis.__LN_NATIVE_SET_INTERVAL__) {
       globalThis.setInterval = globalThis.__LN_NATIVE_SET_INTERVAL__;
       delete globalThis.__LN_NATIVE_SET_INTERVAL__;
@@ -226,5 +226,10 @@
       ? setTimeout(kick, 100)
       : refresh(true).catch(() => {});
     setTimeout(kick, 120);
-  });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  else
+    initialize();
 })();
