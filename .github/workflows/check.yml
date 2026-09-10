@@ -17,6 +17,17 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - shell: pwsh
+        run: |
+          foreach ($file in @('start.ps1', 'update.ps1', 'setup.ps1')) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file), [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | Format-List
+              throw "PowerShell syntax error in $file"
+            }
+          }
       - run: python backend/app.py --init-only
       - run: npm run check
       - run: python tests/test_backend.py
