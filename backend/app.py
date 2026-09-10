@@ -1,10 +1,13 @@
 """Lecture Notes server entry point with convenience-safe defaults."""
+import json
+from pathlib import Path
 from urllib.parse import urlsplit
 
 import server
 from convenience import ConvenienceLibrary
 
-VERSION = '0.2.0'
+ROOT = Path(__file__).resolve().parent.parent
+VERSION = json.loads((ROOT / 'extension' / 'manifest.json').read_text(encoding='utf-8-sig'))['version']
 
 
 class ConvenienceHandler(server.Handler):
