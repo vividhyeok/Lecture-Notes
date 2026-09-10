@@ -4,9 +4,9 @@ import hashlib
 import zipfile
 
 root = Path(__file__).resolve().parent
-target = root / 'dist' / 'Lecture-Notes-v0.1.7.zip'
+target = root / 'dist' / 'Lecture-Notes-v0.2.0.zip'
 target.parent.mkdir(exist_ok=True)
-files = [root / name for name in ['README.md', 'DEVELOPMENT.md', 'START.cmd', 'start.ps1', 'SETUP.cmd', 'setup.ps1']]
+files = [root / name for name in ['README.md', 'DEVELOPMENT.md', 'START.cmd', 'start.ps1', 'SETUP.cmd', 'setup.ps1', 'UPDATE.cmd', 'update.ps1']]
 for directory, extensions in [('backend', {'.py'}), ('extension', {'.js', '.html', '.css', '.json'}), ('samples', {'.md', '.txt'}), ('docs', {'.md'})]:
     files.extend(p for p in (root / directory).rglob('*') if p.is_file() and p.suffix in extensions and '__pycache__' not in p.parts)
 with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as archive:
@@ -15,8 +15,7 @@ with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as archive:
         name = path.relative_to(root).as_posix()
         if name == 'extension/config.local.js':
             continue
-        else:
-            archive.write(path, name)
+        archive.write(path, name)
 with zipfile.ZipFile(target) as archive:
     assert archive.testzip() is None
     assert not any(any(part in {'.local', 'library', 'Obsidian', 'node_modules'} for part in Path(name).parts) for name in archive.namelist())
@@ -25,4 +24,6 @@ with zipfile.ZipFile(target) as archive:
     assert 'backend/convenience.py' in archive.namelist()
     assert 'backend/app.py' in archive.namelist()
     assert 'extension/print.html' in archive.namelist()
+    assert 'UPDATE.cmd' in archive.namelist()
+    assert 'update.ps1' in archive.namelist()
 print(f'{target.name}: {target.stat().st_size:,} bytes; SHA256 {hashlib.sha256(target.read_bytes()).hexdigest()}')
