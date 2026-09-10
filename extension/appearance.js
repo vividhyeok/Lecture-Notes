@@ -1,5 +1,20 @@
 /* Display preferences are local to this PC/browser, never part of the vault. */
 (() => {
+  // navigation.js used to run three cosmetic maintenance loops every 0.8–1.1s.
+  // Convert just those known loops to state-update events before navigation.js
+  // registers them. The normal 3s panel polling timer is left untouched.
+  const nativeSetInterval = globalThis.setInterval.bind(globalThis);
+  const eventDrivenDelays = new Set([800, 1000, 1100]);
+  globalThis.__LN_NATIVE_SET_INTERVAL__ = nativeSetInterval;
+  globalThis.setInterval = (callback, delay, ...args) => {
+    if (!eventDrivenDelays.has(Number(delay)))
+      return nativeSetInterval(callback, delay, ...args);
+    const run = () => callback(...args);
+    document.addEventListener("lecture-notes:state-updated", run);
+    queueMicrotask(run);
+    return 0;
+  };
+
   const root = document.documentElement;
   const system = matchMedia('(prefers-color-scheme: dark)');
   let prefs = {};
@@ -22,4 +37,12 @@
   document.getElementById('fontReset').onclick = () => { scale = 100; apply(); };
   system.addEventListener('change', apply);
   apply();
+
+  // performance.js depends on panel.js globals. Load it only after all parser
+  // scripts have completed, then it can wrap refresh/render safely.
+  window.addEventListener('load', () => {
+    const script = document.createElement('script');
+    script.src = 'performance.js';
+    document.body.append(script);
+  }, { once: true });
 })();
