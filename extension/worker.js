@@ -1,5 +1,13 @@
 "use strict";
-importScripts("config.local.js", "context-router.js");
+importScripts("config.bootstrap.js", "context-router.js");
+try {
+  importScripts("config.local.js");
+} catch (error) {
+  // SETUP.cmd / UPDATE.cmd writes this per-PC token file. A missing file must
+  // never prevent the extension service worker from registering; the panel can
+  // still explain that local setup needs to be run.
+  console.info("Lecture Notes local config is not initialized yet.");
+}
 const HOSTS = [
   "www.youtube.com", "m.youtube.com", "youtube.com", "youtu.be",
   "jnuclass.jejunu.ac.kr",
