@@ -9,7 +9,7 @@ const fs = require("node:fs"),
   fs.cpSync("extension", path.join(root, "extension"), { recursive: true });
   const process = spawn(
     "python",
-    [path.resolve("backend/server.py"), "--root", root, "--port", "18766"],
+    [path.resolve("backend/app.py"), "--root", root, "--port", "18766"],
     { windowsHide: true, stdio: "ignore" },
   );
   let browser, token;
@@ -20,6 +20,8 @@ const fs = require("node:fs"),
       try {
         const r = await fetch(base + "/health");
         if (r.ok) {
+          const health = await r.json();
+          assert.equal(health.version, '0.2.0');
           ready = true;
           break;
         }
@@ -38,6 +40,7 @@ const fs = require("node:fs"),
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(base);
     await page.locator("#settingsView").waitFor({ state: "visible" });
+    assert.equal(await page.locator('#qualityPreset').inputValue(), 'balanced');
     await page.click("[data-view=library]");
     assert.equal(await page.locator('#manualImport').getAttribute('open'), null);
     await page.setInputFiles("#fileInput", {
@@ -79,6 +82,7 @@ const fs = require("node:fs"),
     const pdf = await print.pdf({ preferCSSPageSize: true });
     assert.ok(pdf.length > 1000, 'A4 PDF should contain rendered lecture');
     await print.close();
+    await page.click('#noteTools > summary');
     await page.setViewportSize({ width: 430, height: 900 });
     await page.fill("#noteSearch", "주소 공간");
     await page.waitForFunction(
@@ -135,13 +139,25 @@ const fs = require("node:fs"),
     assert.deepEqual(errors, []);
     await page.setInputFiles('#fileInput', {name:'[운영체제] 10 다음 강의-노트.md',mimeType:'text/markdown',buffer:Buffer.from('# 다음 강의\n- 다음 내용')});
     await page.waitForFunction(()=>document.querySelectorAll('.lecture-item').length===2);
+
+    // Archive one lecture, inspect the archive, then restore it. The underlying
+    // note file remains available throughout.
+    await page.locator('.archive-row-button').first().click();
+    await page.waitForFunction(()=>document.querySelectorAll('.lecture-item').length===1);
+    await page.click('#archiveToggle');
+    await page.waitForFunction(()=>document.querySelectorAll('.lecture-item').length===1 && document.querySelector('#archiveToggle').textContent.includes('내 강의'));
+    await page.locator('.archive-row-button').first().click();
+    await page.waitForFunction(()=>document.querySelectorAll('.lecture-item').length===0);
+    await page.click('#archiveToggle');
+    await page.waitForFunction(()=>document.querySelectorAll('.lecture-item').length===2);
+
     const linked = await browser.newPage({viewport:{width:350,height:850}});
     linked.on('pageerror', e=>errors.push(e.message));
     await linked.addInitScript(() => {
       sessionStorage.setItem('setupShown','1');
       window.testLecture = {canBind:true,course:'운영체제',title:'LMS 영상 01',pageKey:'https://jnuclass.jejunu.ac.kr/courses/1/lecture/1',mediaKey:'https://common.jejunu.ac.kr/01.mp4',tabId:123};
       window.chrome ||= {};
-      chrome.runtime = {id:'test-extension',sendMessage:async()=>window.testLecture};
+      chrome.runtime = {id:'test-extension',sendMessage:async()=>window.testLecture,getManifest:()=>({version:'0.2.0'})};
       chrome.tabs = {query:async()=>[{id:window.testLecture.tabId,url:window.testLecture.pageKey,title:window.testLecture.title}],create:async args=>{window.openedVideo=args.url;},onActivated:{addListener:()=>{}}};
       chrome.scripting = {executeScript:async args=>args.files?[]:[{result:window.testLecture}]};
       chrome.storage = {local:{get:async()=>({}),set:async()=>{}}};
@@ -174,7 +190,7 @@ const fs = require("node:fs"),
     await linked.close();
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: Chrome import, Markdown, XSS, search, edit/conflict, dedupe, dark theme/size persistence, 320px layout and A4 PDF",
+      "PASS: Chrome import, archive/restore, Markdown, XSS, search, edit/conflict, dedupe, dark theme/size persistence, 320px layout and A4 PDF",
     );
   } finally {
     await browser?.close();
@@ -197,7 +213,6 @@ const fs = require("node:fs"),
         resolve();
       }, 5000).unref();
     });
-    // Only delete the uniquely created test directory, never the user's library.
     if (
       path.dirname(root) === os.tmpdir() &&
       path.basename(root).startsWith("lecture-notes-test-")
