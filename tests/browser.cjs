@@ -1,4 +1,4 @@
-﻿const { chromium } = require("playwright-core");
+const { chromium } = require("playwright-core");
 const { spawn } = require("node:child_process");
 const fs = require("node:fs"),
   path = require("node:path"),
@@ -7,6 +7,9 @@ const fs = require("node:fs"),
 (async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "lecture-notes-test-"));
   fs.cpSync("extension", path.join(root, "extension"), { recursive: true });
+  const expectedVersion = JSON.parse(
+    fs.readFileSync("extension/manifest.json", "utf8").replace(/^\uFEFF/, ""),
+  ).version;
   const process = spawn(
     "python",
     [path.resolve("backend/app.py"), "--root", root, "--port", "18766"],
@@ -21,7 +24,7 @@ const fs = require("node:fs"),
         const r = await fetch(base + "/health");
         if (r.ok) {
           const health = await r.json();
-          assert.equal(health.version, '0.2.0');
+          assert.equal(health.version, expectedVersion);
           ready = true;
           break;
         }
@@ -153,15 +156,15 @@ const fs = require("node:fs"),
 
     const linked = await browser.newPage({viewport:{width:350,height:850}});
     linked.on('pageerror', e=>errors.push(e.message));
-    await linked.addInitScript(() => {
+    await linked.addInitScript(({version}) => {
       sessionStorage.setItem('setupShown','1');
       window.testLecture = {canBind:true,course:'운영체제',title:'LMS 영상 01',pageKey:'https://jnuclass.jejunu.ac.kr/courses/1/lecture/1',mediaKey:'https://common.jejunu.ac.kr/01.mp4',tabId:123};
       window.chrome ||= {};
-      chrome.runtime = {id:'test-extension',sendMessage:async()=>window.testLecture,getManifest:()=>({version:'0.2.0'})};
+      chrome.runtime = {id:'test-extension',sendMessage:async()=>window.testLecture,getManifest:()=>({version})};
       chrome.tabs = {query:async()=>[{id:window.testLecture.tabId,url:window.testLecture.pageKey,title:window.testLecture.title}],create:async args=>{window.openedVideo=args.url;},onActivated:{addListener:()=>{}}};
       chrome.scripting = {executeScript:async args=>args.files?[]:[{result:window.testLecture}]};
       chrome.storage = {local:{get:async()=>({}),set:async()=>{}}};
-    });
+    }, {version: expectedVersion});
     await linked.goto(base);
     await linked.locator('.lecture-item').first().waitFor();
     await linked.locator('.lecture-item').filter({hasText:'프로세스'}).click();
