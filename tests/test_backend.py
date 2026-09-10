@@ -222,7 +222,7 @@ class LibraryTests(unittest.TestCase):
         target.mkdir(parents=True)
         self.app.update_settings({'vault_folder': str(target)})
         note = Path(self.app.lecture(ident)['note_path'])
-        self.assertTrue(note.is_relative_to(target))
+        self.assertTrue(note.resolve().is_relative_to(target.resolve()))
         self.assertEqual(note.read_text(encoding='utf-8'), '# Edited in Obsidian')
         self.assertTrue(old.exists())
         self.assertEqual(json.loads((self.app.private / 'settings.json').read_text(encoding='utf-8'))['vault_folder'], str(target.resolve()))
@@ -256,7 +256,7 @@ class APITests(unittest.TestCase):
             (Path(tmp)/'extension'/'config.local.js').write_text('secret config',encoding='utf-8')
             server=Server(('127.0.0.1',0),app)
             thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
-            base=f'http://127.0.0.1:{server.server_port}'
+            base='http://127.0.0.1:'+str(server.server_port)
             try:
                 with urllib.request.urlopen(base+'/health') as response:self.assertEqual(json.load(response)['app'],'lecture-notes')
                 with self.assertRaises(urllib.error.HTTPError) as error:urllib.request.urlopen(base+'/api/state')
