@@ -15,6 +15,13 @@ const supported = (value) => {
     return false;
   }
 };
+const isYoutube = (value) => {
+  try {
+    return ["www.youtube.com", "m.youtube.com", "youtube.com", "youtu.be"].includes(new URL(value).hostname);
+  } catch {
+    return false;
+  }
+};
 const ports = new Set();
 const safe = (p) => p.catch(() => null);
 chrome.sidePanel
@@ -63,16 +70,29 @@ chrome.runtime.onConnect.addListener((port) => {
   ports.add(port);
   port.onDisconnect.addListener(() => ports.delete(port));
 });
+
 chrome.downloads.onChanged.addListener((delta) => {
   if (delta.state?.current !== "complete") return;
   (async () => {
-    const settings = await chrome.storage.local.get("downloadImport");
+    const key = "download-context-" + delta.id;
+    const settings = await chrome.storage.local.get([
+      "downloadImport",
+      "downloadImportYoutube",
+    ]);
     if (!settings.downloadImport) return;
+
+    const saved = await chrome.storage.session.get(key);
+    const source = saved[key] || null;
+    // A DownloadHelper event alone is not enough. The download must have been
+    // created while Lecture Notes had a supported lecture context.
+    if (!source?.pageKey || !supported(source.pageKey)) return;
+    if (isYoutube(source.pageKey) && !settings.downloadImportYoutube) return;
+
     const [item] = await chrome.downloads.search({ id: delta.id });
     if (
       !item ||
       !item.filename ||
-      !/\.(mp3|m4a|mp4|wav|webm)$/i.test(item.filename)
+      !/\.(mp3|m4a|mp4|wav|webm|mpeg|mpga|ogg|flac)$/i.test(item.filename)
     )
       return;
     if (
@@ -80,10 +100,7 @@ chrome.downloads.onChanged.addListener((delta) => {
       !supported(item.referrer)
     )
       return;
-    const saved = await chrome.storage.session.get(
-      "download-context-" + delta.id,
-    );
-    const source = saved["download-context-" + delta.id] || {};
+
     const response = await fetch(LN_CONFIG.base + "/api/download-complete", {
       method: "POST",
       headers: {
@@ -92,21 +109,24 @@ chrome.downloads.onChanged.addListener((delta) => {
       },
       body: JSON.stringify({
         filename: item.filename,
+        title: source.title || "",
         course: source.course || "",
       }),
     });
     if (!response.ok)
-      throw Error("감시 폴더 설정과 서버 실행 상태를 확인하세요.");
+      throw Error("강의 다운로드를 가져오지 못했습니다. 저장 폴더와 서버 상태를 확인하세요.");
     await chrome.storage.local.set({
-      downloadStatus: "다운로드 파일을 노트 처리 대기열에 추가했습니다.",
+      downloadStatus: "강의 다운로드만 노트 처리 대기열에 추가했습니다.",
     });
+    await chrome.storage.session.remove(key);
   })().catch(() =>
     chrome.storage.local.set({
       downloadStatus:
-        "다운로드 감지 후 가져오지 못했습니다. START.cmd와 감시 폴더를 확인하세요.",
+        "강의 다운로드를 가져오지 못했습니다. 서버 또는 다운로드 폴더 설정을 확인하세요.",
     }),
   );
 });
+
 async function restore(tabId) {
   const tab = await safe(chrome.tabs.get(tabId));
   if (!supported(tab?.url)) return;
@@ -130,6 +150,7 @@ chrome.tabs
   .query({ url: HOSTS.map((h) => "https://" + h + "/*") })
   .then((tabs) => Promise.allSettled(tabs.map((t) => restore(t.id))))
   .catch(() => {});
+
 chrome.downloads.onCreated.addListener((item) => {
   (async () => {
     const [tab] = await chrome.tabs.query({
@@ -138,9 +159,13 @@ chrome.downloads.onCreated.addListener((item) => {
     });
     if (!tab || !supported(tab.url)) return;
     const value = await chrome.storage.session.get("tab-" + tab.id);
-    if (value["tab-" + tab.id])
-      await chrome.storage.session.set({
-        ["download-context-" + item.id]: value["tab-" + tab.id],
-      });
+    let context = value["tab-" + tab.id] || null;
+    if (!context?.pageKey) {
+      context = await LectureContextRouter.collect(chrome, tab).catch(() => null);
+    }
+    if (!context?.canBind || !context.pageKey) return;
+    await chrome.storage.session.set({
+      ["download-context-" + item.id]: context,
+    });
   })().catch(() => {});
 });
