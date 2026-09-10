@@ -23,9 +23,14 @@ jobs:
       - run: python tests/test_convenience.py
       - run: npm run test:browser
       - run: python build_release.py
+      - id: version
+        shell: pwsh
+        run: |
+          $version = (Get-Content extension/manifest.json -Raw | ConvertFrom-Json).version
+          "version=$version" >> $env:GITHUB_OUTPUT
       - uses: actions/upload-artifact@v4
         with:
-          name: Lecture-Notes-v0.2.1
-          path: dist/Lecture-Notes-v0.2.1.zip
+          name: Lecture-Notes-v${{ steps.version.outputs.version }}
+          path: dist/Lecture-Notes-v${{ steps.version.outputs.version }}.zip
           if-no-files-found: error
           retention-days: 14
