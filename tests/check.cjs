@@ -17,13 +17,21 @@ for (const file of [
   manifest.background.service_worker,
   manifest.side_panel.default_path,
   ...manifest.content_scripts.flatMap((c) => c.js),
+  "config.bootstrap.js",
 ])
   if (!fs.existsSync(path.join("extension", file)))
     throw Error("missing " + file);
 const html = fs.readFileSync("extension/panel.html", "utf8");
 for (const match of html.matchAll(/(?:src|href)="([^"]+\.(?:js|css))"/g))
-  if (!fs.existsSync(path.join("extension", match[1])))
-    throw Error("missing asset");
+  if (match[1] !== "config.local.js" && !fs.existsSync(path.join("extension", match[1])))
+    throw Error("missing asset " + match[1]);
+const worker = fs.readFileSync("extension/worker.js", "utf8");
+if (
+  !worker.includes('importScripts("config.bootstrap.js", "context-router.js")') ||
+  !worker.includes('importScripts("config.local.js")') ||
+  !/try\s*\{[\s\S]*importScripts\("config\.local\.js"\)[\s\S]*\}\s*catch/.test(worker)
+)
+  throw Error("service worker must tolerate a missing per-PC config.local.js");
 console.log("Extension syntax, manifest and assets passed");
 require('./navigation.cjs');
 require('./context-router.cjs');
