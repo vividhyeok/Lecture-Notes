@@ -32,6 +32,7 @@ jobs:
       - run: npm run check
       - run: python tests/test_backend.py
       - run: python tests/test_convenience.py
+      - run: python tests/test_stale_server.py
       - run: npm run test:browser
       - run: python build_release.py
       - id: version
