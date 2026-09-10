@@ -4,7 +4,7 @@ import hashlib
 import zipfile
 
 root = Path(__file__).resolve().parent
-target = root / 'dist' / 'Lecture-Notes-v0.1.6.zip'
+target = root / 'dist' / 'Lecture-Notes-v0.1.7.zip'
 target.parent.mkdir(exist_ok=True)
 files = [root / name for name in ['README.md', 'DEVELOPMENT.md', 'START.cmd', 'start.ps1', 'SETUP.cmd', 'setup.ps1']]
 for directory, extensions in [('backend', {'.py'}), ('extension', {'.js', '.html', '.css', '.json'}), ('samples', {'.md', '.txt'}), ('docs', {'.md'})]:
@@ -22,5 +22,7 @@ with zipfile.ZipFile(target) as archive:
     assert not any(any(part in {'.local', 'library', 'Obsidian', 'node_modules'} for part in Path(name).parts) for name in archive.namelist())
     assert "token:''" in archive.read('extension/config.local.js').decode()
     assert 'backend/vault_sync.py' in archive.namelist()
+    assert 'backend/convenience.py' in archive.namelist()
+    assert 'backend/app.py' in archive.namelist()
     assert 'extension/print.html' in archive.namelist()
 print(f'{target.name}: {target.stat().st_size:,} bytes; SHA256 {hashlib.sha256(target.read_bytes()).hexdigest()}')
