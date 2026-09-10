@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Lecture Notes · 강의 노트",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "minimum_chrome_version": "116",
-  "description": "다운로드한 강의를 OpenAI로 전사하고 Markdown 노트와 시험 자료를 폴더에 보관합니다.",
+  "description": "강의 다운로드만 안전하게 가져와 OpenAI로 전사하고 Markdown 노트와 시험 자료를 보관합니다.",
   "permissions": [
     "tabs",
     "sidePanel",
