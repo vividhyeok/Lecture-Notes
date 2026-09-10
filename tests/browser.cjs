@@ -57,7 +57,7 @@ const fs = require("node:fs"),
     await page.click('#themeToggle');
     await page.click('#themeToggle');
     assert.equal(await page.getAttribute('html', 'data-theme'), 'dark');
-    await page.click('#readingOptions > summary');
+    await page.click('#noteTools > summary');
     await page.click('#fontIncrease');
     assert.equal(await page.locator('#fontReset').textContent(), '110%');
     await page.reload();
@@ -68,7 +68,7 @@ const fs = require("node:fs"),
     await page.setViewportSize({ width: 320, height: 850 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     const popupPromise = page.waitForEvent('popup');
-    await page.click('#readingOptions > summary');
+    await page.click('#noteTools > summary');
     await page.click('#printNote');
     const print = await popupPromise;
     await print.locator('#printBody ul ul').waitFor();
