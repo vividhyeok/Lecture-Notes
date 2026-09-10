@@ -2,7 +2,7 @@
 
 다운로드한 대학 강의를 자동으로 식별해 전사하고, 읽기 좋은 Markdown 노트와 시험 대비 자료로 정리하는 **Windows 로컬 앱 + Chrome 사이드 패널 확장 프로그램**입니다.
 
-v0.2.1은 v0.2.0의 사용성 개편에 더해, `config.local.js`가 아직 생성되지 않았거나 부분 업데이트에서 누락돼도 Chrome 서비스 워커가 등록 실패하지 않도록 초기화 경로를 보강한 핫픽스입니다. Windows 로그인 시 처리 서버가 자동으로 실행되고, JNUclass/Canvas 강의 페이지에서 DownloadHelper로 받은 파일은 해당 강의와 자동 연결됩니다.
+v0.2.2는 v0.2.0의 사용성 개편과 v0.2.1의 서비스 워커 복구에 더해, **예전 Lecture Notes 서버가 이미 실행 중이어도 START/UPDATE가 현재 폴더의 버전으로 자동 교체**하도록 업데이트 경로를 보강한 핫픽스입니다. Windows 로그인 시 처리 서버가 자동으로 실행되고, JNUclass/Canvas 강의 페이지에서 DownloadHelper로 받은 파일은 해당 강의와 자동 연결됩니다.
 
 ## 처음 설치
 
@@ -20,14 +20,18 @@ v0.2.1은 v0.2.0의 사용성 개편에 더해, `config.local.js`가 아직 생�
 
 이후에는 프로젝트 폴더에서 `START.cmd`를 매일 실행할 필요가 없습니다.
 
-## 기존 버전에서 v0.2.1로 업데이트
+## 기존 버전에서 v0.2.2로 업데이트
 
-1. 새 ZIP의 파일을 **기존 Lecture-Notes 폴더 위에 덮어씁니다.**
+가장 안전한 방법은 새 ZIP의 파일을 **Chrome이 현재 사용 중인 기존 Lecture-Notes 폴더 위에 그대로 덮어쓰는 것**입니다. 그러면 기존 `.local`, 자료함, Chrome의 압축해제 확장 경로를 그대로 유지할 수 있습니다.
+
+1. 새 ZIP의 파일을 기존 Lecture-Notes 폴더 위에 덮어씁니다.
 2. **UPDATE.cmd**를 실행합니다.
 3. Chrome 확장 관리 화면이 열리면 `Lecture Notes · 강의 노트`의 **새로고침** 버튼을 한 번 누릅니다.
 4. 이미 열려 있던 JNUclass/Canvas 페이지가 있다면 그 탭도 한 번 새로고침합니다.
 
-`UPDATE.cmd`는 실행 중인 이전 서버를 종료하고 새 코드로 다시 시작하며, 자동 시작/시작 메뉴 등록도 갱신합니다. 배포 ZIP에는 `.local`, `library`, `Obsidian`이 포함되지 않으므로 기존 API 키·자료함·노트를 덮어쓰지 않습니다.
+`UPDATE.cmd`는 실행 중인 이전 서버를 종료하고 새 코드로 다시 시작하며, 자동 시작/시작 메뉴 등록도 갱신합니다. v0.2.2에서는 새 ZIP을 다른 폴더에 풀어 예전 설치의 API 토큰을 가지고 있지 않더라도, 18765 포트의 서버가 Lecture Notes임을 `/health`로 확인한 뒤 해당 구버전 프로세스만 종료하고 현재 버전을 시작합니다. 다른 애플리케이션이 포트를 사용 중이면 임의로 종료하지 않습니다.
+
+배포 ZIP에는 `.local`, `library`, `Obsidian`이 포함되지 않으므로 기존 API 키·자료함·노트를 덮어쓰지 않습니다.
 
 v0.2.1부터는 per-PC 설정 파일인 `extension/config.local.js`가 잠시 없더라도 서비스 워커 자체는 정상 등록됩니다. `SETUP.cmd` 또는 `UPDATE.cmd`가 실제 로컬 토큰 파일을 다시 생성합니다.
 
@@ -145,9 +149,10 @@ v0.2.1부터는 per-PC 설정 파일인 `extension/config.local.js`가 잠시 �
 
 | 증상 | 확인할 내용 |
 | --- | --- |
-| `Service worker registration failed. Status code: 15` / `config.local.js failed to load` | **v0.2.1 이상으로 업데이트** → `UPDATE.cmd` 실행 → `chrome://extensions`에서 Lecture Notes 새로고침. v0.2.1에서는 파일이 잠시 없어도 서비스 워커 등록 자체는 실패하지 않습니다. |
+| `Service worker registration failed. Status code: 15` / `config.local.js failed to load` | **v0.2.1 이상으로 업데이트** → `UPDATE.cmd` 실행 → `chrome://extensions`에서 Lecture Notes 새로고침. |
+| `START.cmd`를 눌러도 예전 버전이 열림 | **v0.2.2 이상으로 업데이트**. v0.2.2의 START/UPDATE는 실행 중 서버 버전을 확인하고 구버전이면 현재 폴더 버전으로 교체합니다. |
 | 자료함 연결 안 됨 | 시작 메뉴에서 `Lecture Notes` 실행 → 확장에서 `다시 확인`. 프로젝트 폴더를 찾을 필요 없음. |
-| 업데이트했는데 예전 동작 | `UPDATE.cmd` 실행 후 `chrome://extensions`에서 Lecture Notes 새로고침. 열린 LMS 탭도 새로고침. |
+| 업데이트했는데 예전 동작 | `UPDATE.cmd` 실행 후 `chrome://extensions`에서 Lecture Notes 새로고침. 열린 LMS 탭도 새로고침. 새 폴더를 사용했다면 Chrome이 그 폴더의 `extension`을 가리키는지도 확인. |
 | 강의 다운로드가 안 들어옴 | DownloadHelper 자동 가져오기 ON, 다운로드 위치와 설정 폴더 일치 여부 확인. |
 | 일반 MP3가 들어옴 | `다운로드 폴더의 모든 지원 파일 자동 가져오기`를 OFF로 변경. 기존 항목은 `미분류 전체 보관`. |
 | YouTube 파일이 안 들어옴 | YouTube 자동 가져오기는 별도 옵션이며 기본 OFF. |
@@ -173,10 +178,11 @@ python backend/app.py --init-only
 npm run check
 python tests/test_backend.py
 python tests/test_convenience.py
+python tests/test_stale_server.py
 npm run test:browser
 python build_release.py
 ```
 
-Windows GitHub Actions에서도 위 검증과 v0.2.1 배포 ZIP 생성을 수행합니다.
+Windows GitHub Actions에서도 위 검증과 현재 manifest 버전의 배포 ZIP 생성을 수행합니다.
 
 [자세한 사용법](docs/USER_GUIDE.md) · [개발 문서](DEVELOPMENT.md)
