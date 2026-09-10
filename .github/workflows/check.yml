@@ -17,6 +17,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - run: python backend/app.py --init-only
       - run: npm run check
       - run: python tests/test_backend.py
       - run: python tests/test_convenience.py
