@@ -36,6 +36,9 @@
     printNote: ['⎙', 'A4 인쇄 / PDF'],
     openVideo: ['▶', '연결된 강의 영상 열기'],
   };
+  const setText = (node, value) => {
+    if (node && node.textContent !== value) node.textContent = value;
+  };
 
   function injectStyles() {
     const style = document.createElement('style');
@@ -182,15 +185,15 @@
     const sync = () => {
       if (!state?.settings) return;
       const preset = state.settings.quality_preset || 'custom';
-      select.value = QUALITY[preset] ? preset : 'custom';
-      hint.textContent = QUALITY[select.value]?.[2] || '';
+      if (select.value !== (QUALITY[preset] ? preset : 'custom')) select.value = QUALITY[preset] ? preset : 'custom';
+      setText(hint, QUALITY[select.value]?.[2] || '');
       finalCheck.checked = Boolean(state.settings.finalize_long_notes);
       if (modelLabel) modelLabel.hidden = select.value !== 'custom';
     };
     select.onchange = async () => {
       try {
         const preset = select.value;
-        hint.textContent = QUALITY[preset][2];
+        setText(hint, QUALITY[preset][2]);
         if (modelLabel) modelLabel.hidden = preset !== 'custom';
         if (preset !== 'custom') {
           model.value = QUALITY[preset][1];
@@ -278,11 +281,11 @@
     setInterval(() => {
       if (!state?.settings) return;
       const archived = Boolean(state.settings.archive_view);
-      toggle.textContent = archived ? '← 내 강의' : `보관함 ${state.settings.archived_count || 0}`;
+      setText(toggle, archived ? '← 내 강의' : `보관함 ${state.settings.archived_count || 0}`);
       toggle.title = archived ? '활성 강의 목록으로 돌아갑니다.' : '보관한 강의를 봅니다.';
       unclassified.hidden = archived || !state.lectures.some(l => !l.course || l.course === '미분류');
       restoreAll.hidden = !archived || !state.lectures.length;
-      archiveCurrent.textContent = current?.archived ? '↩' : '⌄';
+      setText(archiveCurrent, current?.archived ? '↩' : '⌄');
       archiveCurrent.title = current?.archived ? '이 강의를 내 강의로 복원' : '이 강의를 보관함으로 이동';
       archiveCurrent.setAttribute('aria-label', archiveCurrent.title);
     }, 800);
@@ -306,23 +309,24 @@
         const job = state.jobs?.find(j => j.target === lecture.id && ['running','queued','error'].includes(j.status));
         item.classList.toggle('pipeline-running', job?.status === 'running' || job?.status === 'queued');
         item.classList.toggle('pipeline-error', job?.status === 'error');
-        if (info) {
-          if (job?.status === 'error') info.textContent = '처리 실패 · 처리 상태에서 재시도';
-          else if (job?.status === 'running') info.textContent = '처리 중 · ' + job.progress;
-          else if (job?.status === 'queued') info.textContent = '처리 대기 · ' + job.progress;
-          else if (lecture.sync_status) info.textContent = lecture.sync_status;
-          else if (lecture.has_notes) info.textContent = '완료 · 노트 준비됨';
-          else if (lecture.has_transcript) info.textContent = '전사 완료 · 노트 작성 대기';
-          else info.textContent = '다운로드 완료 · 전사 대기';
-          if ((lecture.bindings || []).length && !lecture.sync_status) info.textContent += ' · 영상 연결됨';
-        }
+        let status;
+        if (job?.status === 'error') status = '처리 실패 · 처리 상태에서 재시도';
+        else if (job?.status === 'running') status = '처리 중 · ' + job.progress;
+        else if (job?.status === 'queued') status = '처리 대기 · ' + job.progress;
+        else if (lecture.sync_status) status = lecture.sync_status;
+        else if (lecture.has_notes) status = '완료 · 노트 준비됨';
+        else if (lecture.has_transcript) status = '전사 완료 · 노트 작성 대기';
+        else status = '다운로드 완료 · 전사 대기';
+        if ((lecture.bindings || []).length && !lecture.sync_status) status += ' · 영상 연결됨';
+        setText(info, status);
+
         let archive = row.querySelector('.archive-row-button');
         if (!archive) {
           archive = document.createElement('button');
           archive.className = 'quiet archive-row-button';
           row.append(archive);
         }
-        archive.textContent = archiveView ? '↩' : '⌄';
+        setText(archive, archiveView ? '↩' : '⌄');
         archive.title = archiveView ? '복원' : '보관';
         archive.setAttribute('aria-label', lecture.title + (archiveView ? ' 복원' : ' 보관'));
         archive.onclick = async () => {
@@ -334,7 +338,7 @@
       });
     });
     const empty = document.querySelector('#lectureList > .empty');
-    if (empty && archiveView) empty.textContent = '보관한 강의가 없습니다.';
+    if (empty && archiveView) setText(empty, '보관한 강의가 없습니다.');
   }
 
   function simplifyJobs() {
@@ -348,7 +352,7 @@
       const count = document.getElementById('jobCount');
       const active = visible.filter(j => j.status !== 'error').length;
       const errors = visible.filter(j => j.status === 'error').length;
-      if (count) count.textContent = [active ? `${active}개 처리 중` : '', errors ? `${errors}개 확인 필요` : ''].filter(Boolean).join(' · ');
+      setText(count, [active ? `${active}개 처리 중` : '', errors ? `${errors}개 확인 필요` : ''].filter(Boolean).join(' · '));
     }
   }
 
