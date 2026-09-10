@@ -1,27 +1,57 @@
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 
-# Stop an older in-memory server so the newly extracted Python code is used
-# immediately instead of waiting for the next Windows sign-in.
-$settingsPath = Join-Path $PSScriptRoot '.local\settings.json'
-if (Test-Path -LiteralPath $settingsPath) {
+$HealthUrl = 'http://127.0.0.1:18765/health'
+function Get-LectureNotesHealth {
   try {
-    $settings = Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($settings.token) {
-      Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:18765/api/shutdown' -Headers @{ Authorization = 'Bearer ' + $settings.token } -ContentType 'application/json' -Body '{}' -TimeoutSec 3 | Out-Null
-      Start-Sleep -Milliseconds 700
-    }
+    return Invoke-RestMethod -Uri $HealthUrl -TimeoutSec 2
   } catch {
-    # An already-stopped server is a normal update state.
+    return $null
   }
 }
 
-# setup.ps1 throws on failure because ErrorActionPreference is Stop. Do not
-# reuse a stale LASTEXITCODE from a prior external command as the update result.
+# UPDATE must replace an already-running copy even when the new ZIP was
+# extracted to a different folder and therefore does not have the old token.
+$health = Get-LectureNotesHealth
+if ($health -and $health.app -eq 'lecture-notes') {
+  $settingsPath = Join-Path $PSScriptRoot '.local\settings.json'
+  if (Test-Path -LiteralPath $settingsPath) {
+    try {
+      $settings = Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+      if ($settings.token) {
+        Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:18765/api/shutdown' -Headers @{ Authorization = 'Bearer ' + $settings.token } -ContentType 'application/json' -Body '{}' -TimeoutSec 3 | Out-Null
+        Start-Sleep -Milliseconds 800
+      }
+    } catch {}
+  }
+
+  $stillRunning = Get-LectureNotesHealth
+  if ($stillRunning -and $stillRunning.app -eq 'lecture-notes') {
+    try {
+      $owners = Get-NetTCPConnection -LocalPort 18765 -State Listen -ErrorAction Stop |
+        Select-Object -ExpandProperty OwningProcess -Unique
+      foreach ($owner in $owners) {
+        if ($owner -and $owner -ne $PID) {
+          Stop-Process -Id $owner -Force -ErrorAction Stop
+        }
+      }
+      Start-Sleep -Milliseconds 600
+    } catch {
+      throw 'Could not stop the previous Lecture Notes server. Close the Python process using port 18765 or restart Windows, then run UPDATE.cmd again.'
+    }
+  }
+}
+
 & (Join-Path $PSScriptRoot 'setup.ps1')
 
+$manifest = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'extension\manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$running = Get-LectureNotesHealth
+if (-not $running -or $running.app -ne 'lecture-notes' -or [string]$running.version -ne [string]$manifest.version) {
+  throw "Update finished copying files, but Lecture Notes v$($manifest.version) did not start correctly. Check .local/server-error.log."
+}
+
 Write-Output ''
-Write-Output 'Program files and the local server are updated.'
+Write-Output "Lecture Notes v$($manifest.version) is running from this folder."
 Write-Output 'Chrome unpacked extensions need one manual reload after files change.'
 Write-Output 'Opening chrome://extensions when Chrome can be found...'
 
