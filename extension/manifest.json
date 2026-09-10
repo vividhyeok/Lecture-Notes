@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Lecture Notes · 강의 노트",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "minimum_chrome_version": "116",
   "description": "강의 다운로드를 자동 식별·연결해 OpenAI로 전사하고 일관된 Markdown 노트와 시험 자료를 보관합니다.",
   "permissions": [
