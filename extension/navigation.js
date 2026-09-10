@@ -166,8 +166,12 @@
       option.textContent = label;
       select.append(option);
     }
+    // The migrated/default backend preset is balanced. Set the same fallback
+    // synchronously so the UI never flashes “fast” before the first state fetch.
+    select.value = 'balanced';
     const hint = document.createElement('span');
     hint.className = 'muted';
+    hint.textContent = QUALITY.balanced[2];
     row.append(select, hint);
     modelLabel?.before(row);
 
@@ -176,6 +180,7 @@
     const finalCheck = document.createElement('input');
     finalCheck.id = 'finalizeLongNotes';
     finalCheck.type = 'checkbox';
+    finalCheck.checked = true;
     finalLabel.append(finalCheck, document.createTextNode('긴 강의노트 최종 일관성 정리'));
     const finalHint = document.createElement('p');
     finalHint.className = 'muted';
