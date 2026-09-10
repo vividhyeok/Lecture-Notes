@@ -14,6 +14,13 @@
     const heading = document.createElement('h1'); heading.textContent = document.title;
     document.getElementById('printBody').prepend(heading);
   }
-  document.getElementById('printSize').onchange = (e) => document.documentElement.style.setProperty('--print-size', e.target.value + 'pt');
+  const size = document.getElementById('printSize');
+  const width = document.getElementById('printWidth');
+  const setSize = value => document.documentElement.style.setProperty('--print-size', value + 'pt');
+  const setWidth = value => document.documentElement.style.setProperty('--content-width', value);
+  setSize(size.value);
+  setWidth(width.value);
+  size.onchange = event => setSize(event.target.value);
+  width.onchange = event => setWidth(event.target.value);
   document.getElementById('doPrint').onclick = () => window.print();
 })();
