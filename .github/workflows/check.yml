@@ -22,3 +22,10 @@ jobs:
       - run: python tests/test_backend.py
       - run: python tests/test_convenience.py
       - run: npm run test:browser
+      - run: python build_release.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lecture-Notes-v0.2.0
+          path: dist/Lecture-Notes-v0.2.0.zip
+          if-no-files-found: error
+          retention-days: 14
