@@ -16,20 +16,21 @@ if (Test-Path -LiteralPath $settingsPath) {
   }
 }
 
+# setup.ps1 throws on failure because ErrorActionPreference is Stop. Do not
+# reuse a stale LASTEXITCODE from a prior external command as the update result.
 & (Join-Path $PSScriptRoot 'setup.ps1')
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Output ''
 Write-Output 'Program files and the local server are updated.'
 Write-Output 'Chrome unpacked extensions need one manual reload after files change.'
 Write-Output 'Opening chrome://extensions when Chrome can be found...'
 
-$chromeCandidates = @(
+$chromeCandidates = @(@(
   (Get-Command chrome.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
   "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
   "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
   "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
-) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
+) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique)
 
 if ($chromeCandidates.Count -gt 0) {
   Start-Process -FilePath $chromeCandidates[0] -ArgumentList 'chrome://extensions/'
