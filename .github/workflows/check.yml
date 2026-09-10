@@ -25,7 +25,7 @@ jobs:
       - run: python build_release.py
       - uses: actions/upload-artifact@v4
         with:
-          name: Lecture-Notes-v0.2.0
-          path: dist/Lecture-Notes-v0.2.0.zip
+          name: Lecture-Notes-v0.2.1
+          path: dist/Lecture-Notes-v0.2.1.zip
           if-no-files-found: error
           retention-days: 14
