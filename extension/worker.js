@@ -71,6 +71,17 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onDisconnect.addListener(() => ports.delete(port));
 });
 
+async function localPost(path, body) {
+  return fetch(LN_CONFIG.base + "/api/" + path, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + LN_CONFIG.token,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 chrome.downloads.onChanged.addListener((delta) => {
   if (delta.state?.current !== "complete") return;
   (async () => {
@@ -83,9 +94,9 @@ chrome.downloads.onChanged.addListener((delta) => {
 
     const saved = await chrome.storage.session.get(key);
     const source = saved[key] || null;
-    // A DownloadHelper event alone is not enough. The download must have been
-    // created while Lecture Notes had a supported lecture context.
-    if (!source?.pageKey || !supported(source.pageKey)) return;
+    // A DownloadHelper event alone is not enough. The file must have been
+    // created while Lecture Notes had a concrete supported lecture context.
+    if (!source?.pageKey || !source?.title || !supported(source.pageKey)) return;
     if (isYoutube(source.pageKey) && !settings.downloadImportYoutube) return;
 
     const [item] = await chrome.downloads.search({ id: delta.id });
@@ -93,30 +104,37 @@ chrome.downloads.onChanged.addListener((delta) => {
       !item ||
       !item.filename ||
       !/\.(mp3|m4a|mp4|wav|webm|mpeg|mpga|ogg|flac)$/i.test(item.filename)
-    )
-      return;
+    ) return;
     if (
       item.byExtensionId !== "lmjnegcaeklhafolokijcfjliaokphfk" &&
       !supported(item.referrer)
-    )
-      return;
+    ) return;
 
-    const response = await fetch(LN_CONFIG.base + "/api/download-complete", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + LN_CONFIG.token,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        filename: item.filename,
-        title: source.title || "",
-        course: source.course || "",
-      }),
+    const response = await localPost("download-complete", {
+      filename: item.filename,
+      title: source.title || "",
+      course: source.course || "",
     });
     if (!response.ok)
       throw Error("강의 다운로드를 가져오지 못했습니다. 저장 폴더와 서버 상태를 확인하세요.");
+    const imported = await response.json();
+
+    // The download context is authoritative enough to import the file, so use
+    // the same context to bind it immediately. Binding failure does not undo a
+    // successful import; the manual bind button remains as recovery UI.
+    let linked = false;
+    try {
+      const bind = await localPost("bind-lecture", {
+        id: imported.id,
+        context: source,
+      });
+      linked = bind.ok;
+    } catch {}
+
     await chrome.storage.local.set({
-      downloadStatus: "강의 다운로드만 노트 처리 대기열에 추가했습니다.",
+      downloadStatus: linked
+        ? "강의를 가져오고 현재 강의 페이지와 자동 연결했습니다."
+        : "강의는 가져왔지만 페이지 자동 연결에 실패했습니다. 노트 화면에서 연결 버튼으로 복구할 수 있습니다.",
     });
     await chrome.storage.session.remove(key);
   })().catch(() =>
@@ -163,7 +181,7 @@ chrome.downloads.onCreated.addListener((item) => {
     if (!context?.pageKey) {
       context = await LectureContextRouter.collect(chrome, tab).catch(() => null);
     }
-    if (!context?.canBind || !context.pageKey) return;
+    if (!context?.canBind || !context.pageKey || !context.title) return;
     await chrome.storage.session.set({
       ["download-context-" + item.id]: context,
     });
