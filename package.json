@@ -1,10 +1,12 @@
 {
   "name": "lecture-notes",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "check": "node tests/check.cjs",
-    "test:browser": "node tests/browser.cjs"
+    "test:browser": "node tests/browser.cjs",
+    "test:backend": "python tests/test_backend.py && python tests/test_convenience.py",
+    "release": "python build_release.py"
   },
   "devDependencies": {
     "playwright-core": "^1.63.0"

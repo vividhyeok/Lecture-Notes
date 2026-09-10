@@ -1,0 +1,31 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: python backend/app.py --init-only
+      - run: npm run check
+      - run: python tests/test_backend.py
+      - run: python tests/test_convenience.py
+      - run: npm run test:browser
+      - run: python build_release.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lecture-Notes-v0.2.0
+          path: dist/Lecture-Notes-v0.2.0.zip
+          if-no-files-found: error
+          retention-days: 14
