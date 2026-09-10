@@ -1,10 +1,12 @@
 """Build a clean, immediately extractable release; never package private state."""
 from pathlib import Path
 import hashlib
+import json
 import zipfile
 
 root = Path(__file__).resolve().parent
-target = root / 'dist' / 'Lecture-Notes-v0.2.1.zip'
+version = json.loads((root / 'extension' / 'manifest.json').read_text(encoding='utf-8-sig'))['version']
+target = root / 'dist' / f'Lecture-Notes-v{version}.zip'
 target.parent.mkdir(exist_ok=True)
 files = [root / name for name in ['README.md', 'DEVELOPMENT.md', 'START.cmd', 'start.ps1', 'SETUP.cmd', 'setup.ps1', 'UPDATE.cmd', 'update.ps1']]
 for directory, extensions in [('backend', {'.py'}), ('extension', {'.js', '.html', '.css', '.json'}), ('samples', {'.md', '.txt'}), ('docs', {'.md'})]:
@@ -34,4 +36,6 @@ with zipfile.ZipFile(target) as archive:
     assert 'extension/print.html' in names
     assert 'UPDATE.cmd' in names
     assert 'update.ps1' in names
+    manifest = json.loads(archive.read('extension/manifest.json').decode('utf-8-sig'))
+    assert manifest['version'] == version
 print(f'{target.name}: {target.stat().st_size:,} bytes; SHA256 {hashlib.sha256(target.read_bytes()).hexdigest()}')
